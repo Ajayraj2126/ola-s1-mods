@@ -2,33 +2,25 @@ package com.asjohn720.s1mods.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Neutral black ramp
-val BgDark = Color(0xFF000000)
-val SurfaceDark = Color(0xFF0E0E0E)
-val SurfaceVariantDark = Color(0xFF181818)
-val SurfaceHighlight = Color(0xFF222222)
-val CardBorder = Color(0xFF242424)
-val DividerColor = Color(0xFF1A1A1A)
-
-// Monochrome accents: primary actions are white-on-black
-val AccentMint = Color(0xFFEDEDED)
-val AccentMintSubtle = Color(0x14FFFFFF)
-val AccentSky = Color(0xFFA1A1A1)
-val AccentSkySubtle = Color(0x0FFFFFFF)
-
-// Status colors stay muted; used only where state must read at a glance
-val StatusOk = Color(0xFF3FB950)
-val StatusWarning = Color(0xFFD29922)
-val StatusDanger = Color(0xFFE5484D)
-
-val TextPrimary = Color(0xFFEDEDED)
-val TextSecondary = Color(0xFFA1A1A1)
-val TextMuted = Color(0xFF6E6E6E)
-
-val TerminalBg = Color(0xFF050505)
-val TerminalBorder = Color(0xFF1F1F1F)
-
-// Backwards-compatible aliases
+// S1 Control by AJ: brighter, accessible dark blue + teal palette.
+val BgDark = Color(0xFF07121D)
+val SurfaceDark = Color(0xFF0E2030)
+val SurfaceVariantDark = Color(0xFF193044)
+val SurfaceHighlight = Color(0xFF254158)
+val CardBorder = Color(0xFF2A4355)
+val DividerColor = Color(0xFF1B3345)
+val AccentMint = Color(0xFF53E4C3)
+val AccentMintSubtle = Color(0x2553E4C3)
+val AccentSky = Color(0xFF83B8FF)
+val AccentSkySubtle = Color(0x2283B8FF)
+val StatusOk = Color(0xFF53E4A5)
+val StatusWarning = Color(0xFFFFCB74)
+val StatusDanger = Color(0xFFFF7185)
+val TextPrimary = Color(0xFFF0F7FB)
+val TextSecondary = Color(0xFFB2C7D6)
+val TextMuted = Color(0xFF849AAC)
+val TerminalBg = Color(0xFF07111A)
+val TerminalBorder = Color(0xFF2A4355)
 val ElectricGreen = StatusOk
 val CyberCyan = AccentSky
 val ElectricYellow = StatusWarning
