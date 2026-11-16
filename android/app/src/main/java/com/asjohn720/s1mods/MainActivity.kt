@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.asjohn720.s1mods.model.ScooterManager
 import com.asjohn720.s1mods.ui.screens.ConnectVehicleScreen
+import com.asjohn720.s1mods.ui.screens.AjHomeScreen
 import com.asjohn720.s1mods.ui.screens.CustomApkScreen
 import com.asjohn720.s1mods.ui.screens.SetupScreen
 import com.asjohn720.s1mods.ui.screens.ShellScreen
@@ -37,6 +38,7 @@ import com.asjohn720.s1mods.ui.screens.ToolboxScreen
 import com.asjohn720.s1mods.ui.theme.*
 
 enum class AppTab(val title: String, val icon: ImageVector) {
+    HOME("Home", Icons.Default.Home),
     SETUP("Setup", Icons.Default.Bolt),
     TOOLBOX("Tools", Icons.Default.Dashboard),
     CUSTOM_APK("Apps", Icons.Default.Download),
@@ -69,7 +71,7 @@ class MainActivity : ComponentActivity() {
 fun MainAppScaffold(manager: ScooterManager) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("s1mods_prefs", android.content.Context.MODE_PRIVATE) }
-    var selectedTab by remember { mutableStateOf(AppTab.SETUP) }
+    var selectedTab by remember { mutableStateOf(AppTab.HOME) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showOnboardingDialog by remember {
         mutableStateOf(!prefs.getBoolean("has_seen_onboarding", false))
@@ -139,7 +141,7 @@ fun MainAppScaffold(manager: ScooterManager) {
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "S1Mods",
+                                text = "S1 Control by AJ",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = TextPrimary
@@ -241,6 +243,7 @@ fun MainAppScaffold(manager: ScooterManager) {
                     .padding(innerPadding)
             ) {
                 when (selectedTab) {
+                    AppTab.HOME -> AjHomeScreen(manager) { selectedTab = it }
                     AppTab.SETUP -> SetupScreen(manager)
                     AppTab.TOOLBOX -> ToolboxScreen(manager)
                     AppTab.CUSTOM_APK -> CustomApkScreen(manager)
@@ -253,10 +256,10 @@ fun MainAppScaffold(manager: ScooterManager) {
     updateRelease?.let { rel ->
         AlertDialog(
             onDismissRequest = { updateRelease = null },   // tap outside = Close (reappears next launch)
-            title = { Text("Update available", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary) },
+            title = { Text("Original S1Mods release", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary) },
             text = {
                 Text(
-                    "Version ${rel.tag} is available. You have v${BuildConfig.VERSION_NAME}.",
+                    "Original S1Mods ${rel.tag} is available. This AJ Edition is a separate app and will not be updated by an upstream APK.",
                     fontSize = 13.sp,
                     color = TextSecondary,
                     lineHeight = 18.sp
@@ -272,7 +275,7 @@ fun MainAppScaffold(manager: ScooterManager) {
                     colors = ButtonDefaults.buttonColors(containerColor = AccentMint, contentColor = BgDark),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Download", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text("View original", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             },
             dismissButton = {
@@ -297,18 +300,18 @@ fun MainAppScaffold(manager: ScooterManager) {
         AlertDialog(
             onDismissRequest = { showAboutDialog = false },
             title = {
-                Text("S1Mods ${BuildConfig.VERSION_NAME}", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text("S1 Control by AJ • ${BuildConfig.VERSION_NAME}", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("By Anand (@asjohn720)", fontSize = 13.sp, color = TextSecondary)
+                    Text("Customized by AJ (@Ajayraj2126) · Based on S1Mods by Anand (@Asjohn720)", fontSize = 13.sp, color = TextSecondary)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        SocialButton("GitHub", "https://github.com/Asjohn720", context, modifier = Modifier.weight(1f))
-                        SocialButton("X", "https://x.com/asjohn720", context, modifier = Modifier.weight(1f))
-                        SocialButton("Instagram", "https://www.instagram.com/asjohn720.exe", context, modifier = Modifier.weight(1f))
+                        SocialButton("AJ Repo", "https://github.com/Ajayraj2126/ola-s1-mods", context, modifier = Modifier.weight(1f))
+                        SocialButton("Upstream", "https://github.com/Asjohn720/ola-s1-mods", context, modifier = Modifier.weight(1f))
+                        SocialButton("License", "https://github.com/Ajayraj2126/ola-s1-mods/blob/main/LICENSE", context, modifier = Modifier.weight(1f))
                     }
                     Text(
                         text = "MIT License. Unofficial and not affiliated with, endorsed by, or supported by Ola Electric. 'Ola' and 'MoveOS' are trademarks of Ola Electric; 'S1' and model names are used descriptively. Modifying your scooter may void its warranty; use at your own risk.",
