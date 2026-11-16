@@ -1,54 +1,36 @@
-# AJ Edition 0.2.0 — build validation
+# AJ Edition 0.2.1 branding validation
 
-Validated 16 November 2026 from the AJ branch starting at
-`53de59a33b466ed04f1bee01e110e91e9118895a`, with the changes in this submission.
-Upstream source: `e6c82b2c640381f183a2011bd9e2f0e383f83ef5`.
+Local working tree based on `fd498005a6c02c4ee8f9fb48a31a31c72bdfa991`.
 
-## Results
+- APK build and both unit tests passed (0 failures/errors).
+- Package `com.aj.s1control`, version `0.2.1-aj`, code 8.
+- Launcher `com.ajayraj2126.s1control.MainActivity` verified.
+- App-owned old namespace absent from top-level DEX.
+- Primary UI sources contain no original-owner handle; repository/release links use Ajayraj2126.
+- Original full license is bundled unchanged and available from the legal dialog.
+- Renamed Android Auto asset and all bundled package identities verified.
+- APK v2 signature verified.
 
-- `:app:assembleDebug`: passed (fresh build completed in 6m 38s).
-- `:app:testDebugUnitTest`: passed; 2 tests, 0 failures, 0 errors.
-  Tests cover AJ release version comparisons and rejecting original/unrelated
-  APK filenames as AJ updates. They do not perform network requests.
-- Final incremental build/test check: passed after all source edits.
-- `git diff --check`: passed.
-- `aapt2 dump badging`: package `com.aj.s1control`, label `S1 Control by AJ`,
-  version `0.2.0-aj` / code 7, minimum Android API 26, target API 35,
-  compile API 36.
-- `apksigner verify --verbose --print-certs`: passed; APK Signature Scheme v2,
-  one Android Debug signer (RSA 2048).
+APK SHA-256: `240343213732fa8d5f04662aad7d5469a3fb232fc0cc87ce4c0738672df5bd88`
 
-## Toolchain
-
-Eclipse Temurin JDK 21.0.13, Gradle 9.4.1, Android Gradle Plugin 9.0.1,
-built-in Kotlin / Compose compiler 2.2.10, SDK Platform 36,
-Android Build Tools 36.0.0. Dependencies and bundled mod APKs come from the
-original public project. No official v1.4 binary code was repackaged.
-
-## Artifact
-
-File: `S1-Control-AJ-Edition-0.2.0-debug.apk`
-
-Size: 47,782,385 bytes.
-
-SHA-256:
+The local and GitHub builds use different debug certificates. The CI validation file describes the downloadable APK. An older debug installation may need uninstalling before installing a build signed with a different key; this removes local AJ app settings. No phone/emulator or physical scooter runtime test was performed. Public-source v1.4 feature gaps remain documented in AJ-SOURCE-AUDIT.md.
 
 ```text
-a2676ea48e81c23424966c5819867f96d914b7c5819a19b3a6f3a059a03aa636
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: C=US, O=Android, CN=Android Debug
+Signer #1 certificate SHA-256 digest: 3f62f5a10fc152be0ba45a685afb7d2f100e5de2fa05c5afa24de6519e0cde82
+Signer #1 certificate SHA-1 digest: a5076e2eee9c49f9721179d77b02fd6414081a81
+Signer #1 certificate MD5 digest: 050bf425ac6e19f2767c4e53261a9397
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: 79e9a2aaa29688c290d2dbff79c5a4f2bbe399087d3095f6199969539a118216
+Signer #1 public key SHA-1 digest: d0f4400157840a14e32cbfdef6b43c73c1eddc22
+Signer #1 public key MD5 digest: 946b8a587dc0d9c2dff0b51fc8a68c63
 ```
-
-Debug signing certificate SHA-256:
-
-```text
-3f62f5a10fc152be0ba45a685afb7d2f100e5de2fa05c5afa24de6519e0cde82
-```
-
-## Limits
-
-This is a development/debug build. No Android phone/emulator UI session or
-physical scooter was available for runtime testing. Successful compilation
-and signature checks do not establish connectivity or firmware compatibility.
-Connection changes were independently reviewed. Existing install and diagnostic
-paths were preserved at source level; all physical device behavior still needs
-verification. See `AJ-SOURCE-AUDIT.md` for official v1.4 features absent from the
-published source.

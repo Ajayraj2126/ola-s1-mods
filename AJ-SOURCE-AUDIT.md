@@ -5,18 +5,18 @@ Reviewed 16 November 2026. This document distinguishes the public source from th
 ## Verified provenance
 
 - Upstream `main` and the official `v1.4` tag both point to `e6c82b2c640381f183a2011bd9e2f0e383f83ef5` at review time.
-- The existing AJ branch started at `53de59a33b466ed04f1bee01e110e91e9118895a`: [AJ Edition branch](https://github.com/Ajayraj2126/ola-s1-mods/tree/aj-edition-ui).
+- The initial AJ branch started at `53de59a33b466ed04f1bee01e110e91e9118895a`: [AJ Edition branch](https://github.com/Ajayraj2126/ola-s1-mods/tree/aj-edition-ui).
 - The upstream tagged Android source declares version `1.2`, code `5`. The starting AJ branch declared `0.1.0-aj`, code `6`, with application ID `com.aj.s1control`.
 - The official [v1.4 release](https://github.com/Asjohn720/ola-s1-mods/releases/tag/v1.4) was published on 15 November 2026 at 06:49:24 UTC. Its downloadable APK is a different artifact from a build of the published Android source.
 - The official APK was downloaded directly without a user upload. SHA-256 `33afdb54ee6043516eed815fc21bb75466464af82bf11d465476ea9ccda38334` matches the GitHub release asset digest. Its Android manifest identifies `com.asjohn720.s1mods`, version `1.4` / code `8` (minimum API 26, target 35), verified with SDK `aapt2 dump badging`. Its ZIP contains `assets/can_database.json` and `assets/smartball-latest.apk`; neither is in the public Android source assets. This archive inspection did not execute or repackage the official APK.
 
 ## Functional scope
 
-The existing eight-file AJ customization changes the dashboard, theme, branding, application ID and explanatory copy. Its ADB, gRPC, discovery, model and bundled APK assets are byte-identical to the upstream source snapshot before the connection fixes described below.
+The initial eight-file AJ customization changed the dashboard, theme, branding, application ID and explanatory copy. Its ADB, gRPC, discovery, model and bundled APK assets matched the upstream source snapshot before the connection fixes described below. This paragraph records the initial 0.1 state, not a claim that later AJ source files are unchanged.
 
 The source implements network discovery and manual addresses; gRPC diagnostic sessions; ADB authorization; bundled navigation, Android Auto and music installation; online/custom APK installation and package management; display screenshots; model/software/RAM reads; settings shortcuts; and a gated diagnostic shell. These paths remain the functional foundation of AJ Edition.
 
-The retained Kotlin namespace `com.asjohn720.s1mods` is compatible with the separate application ID `com.aj.s1control`. It preserves generated resource/BuildConfig references and activity class names while allowing side-by-side installation with upstream S1Mods.
+AJ 0.2.0 retained the original Kotlin namespace. AJ 0.2.1 migrates app-owned source, imports and generated resource/BuildConfig references to `com.ajayraj2126.s1control`, while retaining application ID `com.aj.s1control`. Bundled-app package IDs remain the identifiers declared by those separate APKs. The official v1.4 manifest identity quoted above is historical evidence and is not the current AJ namespace.
 
 | Official v1.4 announcement | Published source at `e6c82b2` |
 | --- | --- |
@@ -34,9 +34,13 @@ AJ Edition must therefore be described as a customization of the public source, 
 
 Connection lifecycle fixes were made in `ScooterManager.kt`: discard the closed client reference on disconnect; clear prior connection state before a new handshake; close a failed candidate client; and keep a TCP reachability test from publishing a connected diagnostic session. The corresponding UI must report success only after `manager.connect` verifies gRPC; the original connection card caught a connection exception and set the state to connected anyway.
 
-The new AJ build is `0.2.0-aj`, code `7`. Update checks now use the AJ fork and require an AJ-named APK asset; the dialog opens its release page. This fixes the earlier comparison of AJ version 0.1.0 with official S1Mods v1.4.
+AJ `0.2.0-aj`, code `7`, introduced AJ-fork update checks that require an AJ-named APK asset and open its release page. AJ `0.2.1-aj`, code `8`, retains this behavior and updates active owner branding and the app-owned namespace. These changes avoid treating an original S1Mods release as an update to the separate AJ application.
 
 The inherited setup and individual bundled-app installation paths uninstall existing copies before installing replacements. Existing app data may consequently be removed. The ADB bind mount being temporary does not undo installed packages, user data changes, or all settings on restart. The original copyright/license remains applicable and preserved.
+
+## Branding and attribution
+
+Active repository, release and owner links use [Ajayraj2126/ola-s1-mods](https://github.com/Ajayraj2126/ola-s1-mods). Original-source URLs in this audit are provenance citations for the reviewed binary and source snapshot. Original copyright, license and research credits remain in [NOTICE.md](NOTICE.md) and [LICENSE](LICENSE).
 
 ## Verification boundaries
 

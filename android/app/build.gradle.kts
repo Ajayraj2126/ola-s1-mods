@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    namespace = "com.asjohn720.s1mods"
+    namespace = "com.ajayraj2126.s1control"
     compileSdk = 36
 
     defaultConfig {
         applicationId = "com.aj.s1control"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.2.0-aj"
+        versionCode = 8
+        versionName = "0.2.1-aj"
 
         vectorDrawables.useSupportLibrary = true
 
