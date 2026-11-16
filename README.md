@@ -1,27 +1,15 @@
-# S1 Control by AJ
-
-AJ Edition `0.2.0-aj` customizes the public S1Mods Android source with a Home
-dashboard, dark teal interface, separate app identity and connection fixes.
-See [AJ build and usage instructions](AJ-EDITION.md),
-[v1.4 source comparison](AJ-SOURCE-AUDIT.md) and
-[validation results](BUILD-VALIDATION.md).
-
-Original project: **S1Mods by Anand (@Asjohn720)**. Its MIT license is preserved.
-The public source omits several features from the official v1.4 APK.
-
-## Upstream toolkit documentation
+# 🛵 S1Mods - Open-Source Infotainment Utility for MoveOS
 
 [![Target OS](https://img.shields.io/badge/MoveOS-≥%204.0.5%20(4.0.5%20%26%20Above)-green.svg)](#supported-vehicles--compatibility-matrix)
 [![Head Unit OS](https://img.shields.io/badge/Head%20Unit-Android%2010%20%7C%2013-blue.svg)](#technical-specifications)
 [![Stack](https://img.shields.io/badge/Stack-Kotlin%20Compose%20+%20Python%203%20+%20ADB-brightgreen.svg)](#key-features)
 [![Protocol](https://img.shields.io/badge/Protocol-Root%20gRPC%20%28Port%2050005%29-orange.svg)](#technical-specifications)
-[![ADB authorization](https://img.shields.io/badge/ADB%20authorization-In--Memory%20Mount-blueviolet.svg)](#safety-reversibility--zero-flash-modification)
+[![Safety](https://img.shields.io/badge/Safety-100%25%20In--Memory%20RAM%20Mount-blueviolet.svg)](#safety-reversibility--zero-flash-modification)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 An automated, one-click open-source setup utility and standalone Android application to unlock wireless ADB, configure **Floating Touch Navigation (Back, Home, Settings)** and **Music Player** on MoveOS-powered infotainment units running **MoveOS 4.0.5 and above**.
 
-ADB authorization uses a temporary in-memory mount. Installed applications,
-their data and configuration changes may persist after a vehicle restart.
+Zero soldering, zero flash partition writes, and 100% reversible with a single vehicle restart.
 
 ---
 
@@ -29,8 +17,7 @@ their data and configuration changes may persist after a vehicle restart.
 
 1. Turn on **Personal Hotspot** on your Android phone.
 2. On your scooter display, go to **Settings > Wi-Fi** and connect to your phone's hotspot.
-3. Build and install **S1 Control by AJ** using [the AJ instructions](AJ-EDITION.md).
-   The repository's `S1Mods-v1.2.apk` is the original app, not this AJ build.
+3. Install and open [`S1Mods-v1.2.apk`](S1Mods-v1.2.apk) on your phone.
 4. Tap **Scan** *(allow Location permission when prompted — Android requires this to scan local devices)*. If auto-scan is blocked by your phone's security, copy the scooter's **MAC or IP** from **Hotspot > Connected Devices** and paste it via the **Edit (✏️)** button.
 5. Ensure the scooter's **side stand is UP** and screen is awake.
 6. Tap **1-CLICK AUTOMATED SETUP** — within seconds, navigation controls and music mod are installed!

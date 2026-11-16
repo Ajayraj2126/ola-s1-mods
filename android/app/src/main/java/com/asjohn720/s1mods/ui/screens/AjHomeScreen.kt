@@ -18,12 +18,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asjohn720.s1mods.AppTab
 import com.asjohn720.s1mods.model.ScooterManager
 import com.asjohn720.s1mods.ui.theme.*
@@ -34,13 +32,13 @@ import com.asjohn720.s1mods.ui.theme.*
  */
 @Composable
 fun AjHomeScreen(manager: ScooterManager, onNavigate: (AppTab) -> Unit) {
-    val connected by manager.isConnected.collectAsStateWithLifecycle()
-    val summary by manager.vehicleSummary.collectAsStateWithLifecycle()
-    val ip by manager.scooterIp.collectAsStateWithLifecycle()
-    val running by manager.isSetupRunning.collectAsStateWithLifecycle()
-    val success by manager.setupSuccess.collectAsStateWithLifecycle()
-    val step by manager.currentStep.collectAsStateWithLifecycle()
-    val logs by manager.logs.collectAsStateWithLifecycle()
+    val connected by manager.isConnected.collectAsState()
+    val summary by manager.vehicleSummary.collectAsState()
+    val ip by manager.scooterIp.collectAsState()
+    val running by manager.isSetupRunning.collectAsState()
+    val success by manager.setupSuccess.collectAsState()
+    val step by manager.currentStep.collectAsState()
+    val logs by manager.logs.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize().background(BgDark)
@@ -189,10 +187,10 @@ private fun AjShortcut(
     onClick: () -> Unit
 ) {
     Column(
-        modifier.heightIn(min = 126.dp).clip(RoundedCornerShape(17.dp))
+        modifier.height(126.dp).clip(RoundedCornerShape(17.dp))
             .background(SurfaceDark).border(1.dp, CardBorder, RoundedCornerShape(17.dp))
-            .clickable(role = Role.Button, onClick = onClick).padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .clickable(onClick = onClick).padding(14.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         Box(Modifier.size(40.dp).clip(RoundedCornerShape(12.dp))
             .background(AccentMintSubtle), contentAlignment = Alignment.Center) {

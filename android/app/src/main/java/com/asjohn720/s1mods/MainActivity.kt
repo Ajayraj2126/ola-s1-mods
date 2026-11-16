@@ -13,27 +13,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asjohn720.s1mods.model.ScooterManager
 import com.asjohn720.s1mods.ui.screens.ConnectVehicleScreen
 import com.asjohn720.s1mods.ui.screens.AjHomeScreen
@@ -77,19 +71,13 @@ class MainActivity : ComponentActivity() {
 fun MainAppScaffold(manager: ScooterManager) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("s1mods_prefs", android.content.Context.MODE_PRIVATE) }
-    var selectedTab by rememberSaveable { mutableStateOf(AppTab.HOME) }
+    var selectedTab by remember { mutableStateOf(AppTab.HOME) }
     var showAboutDialog by remember { mutableStateOf(false) }
-    var showDisconnectDialog by remember { mutableStateOf(false) }
     var showOnboardingDialog by remember {
         mutableStateOf(!prefs.getBoolean("has_seen_onboarding", false))
     }
-    val isConnected by manager.isConnected.collectAsStateWithLifecycle()
-    val isSetupRunning by manager.isSetupRunning.collectAsStateWithLifecycle()
-    var bypassConnectionGate by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(isConnected) {
-        if (!isConnected) showDisconnectDialog = false
-    }
+    val isConnected by manager.isConnected.collectAsState()
+    var bypassConnectionGate by remember { mutableStateOf(false) }
 
     // Background update check: silent until a newer release exists.
     var updateRelease by remember { mutableStateOf<com.asjohn720.s1mods.util.AppRelease?>(null) }
@@ -133,39 +121,44 @@ fun MainAppScaffold(manager: ScooterManager) {
             topBar = {
                 TopAppBar(
                     title = {
-                        Column(
-                            modifier = Modifier.heightIn(min = 48.dp)
-                                .clickable(role = Role.Button) { showAboutDialog = true },
-                            verticalArrangement = Arrangement.Center
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { showAboutDialog = true }
                         ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(SurfaceVariantDark),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.ElectricScooter,
+                                    contentDescription = null,
+                                    tint = TextPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "S1 Control",
+                                text = "S1 Control by AJ",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = TextPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = "by AJ",
-                                fontSize = 11.sp,
-                                color = AccentMint,
-                                maxLines = 1
+                                color = TextPrimary
                             )
                         }
                     },
                     actions = {
-                        // Keep disconnect deliberate so a status tap cannot interrupt setup.
+                        // Status Pill - Tap to disconnect or switch vehicle
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
                                 .background(SurfaceVariantDark)
-                                .clickable(role = Role.Button) {
-                                    if (isConnected) showDisconnectDialog = true
-                                    else bypassConnectionGate = false
+                                .clickable {
+                                    manager.disconnect()
+                                    bypassConnectionGate = false
                                 }
-                                .heightIn(min = 48.dp)
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Box(
@@ -260,40 +253,13 @@ fun MainAppScaffold(manager: ScooterManager) {
         }
     }
 
-    if (showDisconnectDialog && isConnected) {
-        AlertDialog(
-            onDismissRequest = { showDisconnectDialog = false },
-            title = { Text("Disconnect scooter?", color = TextPrimary) },
-            text = {
-                Text(
-                    if (isSetupRunning) "Setup is running. Disconnecting may interrupt the current step."
-                    else "Return to the connection screen to reconnect or choose another scooter.",
-                    color = TextSecondary
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDisconnectDialog = false
-                    manager.disconnect()
-                    bypassConnectionGate = false
-                }) { Text("Disconnect", color = StatusDanger) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDisconnectDialog = false }) {
-                    Text("Stay connected", color = AccentMint)
-                }
-            },
-            containerColor = SurfaceDark
-        )
-    }
-
     updateRelease?.let { rel ->
         AlertDialog(
             onDismissRequest = { updateRelease = null },   // tap outside = Close (reappears next launch)
-            title = { Text("AJ Edition update available", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary) },
+            title = { Text("Original S1Mods release", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary) },
             text = {
                 Text(
-                    "S1 Control by AJ ${rel.tag} is available. Open the release page to review the changes and download the AJ Edition APK.",
+                    "Original S1Mods ${rel.tag} is available. This AJ Edition is a separate app and will not be updated by an upstream APK.",
                     fontSize = 13.sp,
                     color = TextSecondary,
                     lineHeight = 18.sp
@@ -302,13 +268,14 @@ fun MainAppScaffold(manager: ScooterManager) {
             confirmButton = {
                 Button(
                     onClick = {
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(rel.pageUrl)))
+                        val url = rel.apkUrl ?: rel.pageUrl
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                         updateRelease = null
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = AccentMint, contentColor = BgDark),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("View release", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text("View original", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             },
             dismissButton = {
@@ -336,10 +303,7 @@ fun MainAppScaffold(manager: ScooterManager) {
                 Text("S1 Control by AJ • ${BuildConfig.VERSION_NAME}", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             },
             text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Customized by AJ (@Ajayraj2126) · Based on S1Mods by Anand (@Asjohn720)", fontSize = 13.sp, color = TextSecondary)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -377,10 +341,7 @@ fun MainAppScaffold(manager: ScooterManager) {
                 Text("How to connect", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             },
             text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OnboardingStepItem("1", "On your phone, turn on the Wi-Fi hotspot")
                     OnboardingStepItem("2", "On the scooter, open Wi-Fi and connect to that hotspot")
                     OnboardingStepItem("3", "Come back here and tap Auto Scan")

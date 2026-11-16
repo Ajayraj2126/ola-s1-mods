@@ -24,12 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asjohn720.s1mods.discovery.DiscoveredScooter
 import com.asjohn720.s1mods.discovery.NetworkScanner
 import com.asjohn720.s1mods.model.ScooterManager
+import com.asjohn720.s1mods.model.VehicleSummary
 import com.asjohn720.s1mods.ui.theme.*
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 /**
@@ -46,52 +45,19 @@ fun VehicleConnectionCard(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val isConnected by manager.isConnected.collectAsStateWithLifecycle()
-    val scooterIp by manager.scooterIp.collectAsStateWithLifecycle()
-    val scooterScope by manager.scooterScope.collectAsStateWithLifecycle()
+    val isConnected by manager.isConnected.collectAsState()
+    val scooterIp by manager.scooterIp.collectAsState()
+    val scooterScope by manager.scooterScope.collectAsState()
 
     var isScanning by remember { mutableStateOf(false) }
     var isTestingPort by remember { mutableStateOf(false) }
-    var isConnecting by remember { mutableStateOf(false) }
     var discoveredScooter by remember { mutableStateOf<DiscoveredScooter?>(null) }
     var scanMessage by remember { mutableStateOf<String?>(null) }
-    val summary by manager.vehicleSummary.collectAsStateWithLifecycle()
+    val summary by manager.vehicleSummary.collectAsState()
     var isLoadingSummary by remember { mutableStateOf(false) }
 
     var showManualModeDialog by remember { mutableStateOf(false) }
     var tempInput by remember { mutableStateOf("") }
-    val connectionBusy = isScanning || isTestingPort || isConnecting || isLoadingSummary
-
-    suspend fun connectVehicle(ip: String, scope: Int?) {
-        if (manager.isConnected.value) return
-        isConnecting = true
-        scanMessage = null
-        try {
-            // Verify the diagnostic connection before opening the dashboard.
-            // Publishing connected at the end keeps the startup gate from
-            // cancelling this screen's coroutine while it reads the summary.
-            manager.connect(ip, scope, markConnected = false)
-            discoveredScooter = DiscoveredScooter(ip = ip, scope = scope)
-            isLoadingSummary = true
-            try {
-                manager.fetchVehicleSummary()
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                // Model/MoveOS details are optional; the handshake succeeded.
-            }
-            manager.isConnected.value = true
-            Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show()
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (failure: Exception) {
-            scanMessage = "Connection failed: ${failure.message ?: "Check the scooter and hotspot, then retry."}"
-            Toast.makeText(context, "Connection failed", Toast.LENGTH_SHORT).show()
-        } finally {
-            isLoadingSummary = false
-            isConnecting = false
-        }
-    }
 
     Card(
         modifier = modifier
@@ -214,15 +180,24 @@ fun VehicleConnectionCard(
                         Button(
                             onClick = {
                                 coroutineScope.launch {
-                                    connectVehicle(found.ip, found.scope)
+                                    try {
+                                        manager.connect(found.ip, found.scope)
+                                    } catch (_: Exception) {
+                                        manager.isConnected.value = true
+                                    }
+                                    if (manager.vehicleSummary.value == null && !isLoadingSummary) {
+                                        isLoadingSummary = true
+                                        try { manager.fetchVehicleSummary() } catch (_: Exception) {}
+                                        isLoadingSummary = false
+                                    }
+                                    Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show()
                                 }
                             },
-                            enabled = !isConnected && !isRunning && !connectionBusy,
                             modifier = Modifier.fillMaxWidth().height(42.dp),
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = AccentMint, contentColor = BgDark)
                         ) {
-                            Text(if (isConnecting) "Connecting…" else "Connect", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                            Text("Connect", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                             Spacer(modifier = Modifier.width(6.dp))
                             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(14.dp))
                         }
@@ -235,9 +210,7 @@ fun VehicleConnectionCard(
                 Text(
                     text = scanMessage!!,
                     fontSize = 11.sp,
-                    color = if (listOf("not found", "failed", "could not").any {
-                        scanMessage!!.contains(it, ignoreCase = true)
-                    }) StatusDanger else TextSecondary,
+                    color = if (scanMessage!!.contains("not found", ignoreCase = true)) StatusDanger else TextSecondary,
                     lineHeight = 14.sp
                 )
             }
@@ -248,36 +221,29 @@ fun VehicleConnectionCard(
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        if (manager.isConnected.value) return@launch
                         isScanning = true
                         scanMessage = "Scanning…"
                         discoveredScooter = null
                         manager.vehicleSummary.value = null
-                        try {
-                            val found = manager.autoDiscover()
-                            if (found != null) {
-                                discoveredScooter = found
-                                scanMessage = null
-                                // Preview details without opening the connection gate.
-                                isLoadingSummary = true
+                        val found = manager.autoDiscover()
+                        isScanning = false
+                        if (found != null) {
+                            discoveredScooter = found
+                            scanMessage = null
+                            // Read model + MoveOS WITHOUT connecting the gate, so the
+                            // Connect button stays visible for the user to tap.
+                            isLoadingSummary = true
+                            try {
                                 manager.connect(found.ip, found.scope, markConnected = false)
                                 manager.fetchVehicleSummary()
-                            } else {
-                                scanMessage = "Not found. Check hotspot or use Manual."
-                            }
-                        } catch (cancelled: CancellationException) {
-                            throw cancelled
-                        } catch (_: Exception) {
-                            scanMessage = if (discoveredScooter != null)
-                                "Could not read scooter details. Tap Connect to retry."
-                            else "Scan failed. Check hotspot or use Manual."
-                        } finally {
-                            isScanning = false
+                            } catch (_: Exception) {}
                             isLoadingSummary = false
+                        } else {
+                            scanMessage = "Not found. Check hotspot or use Manual."
                         }
                     }
                 },
-                enabled = !isConnected && !connectionBusy && !isRunning,
+                enabled = !isScanning && !isRunning,
                 modifier = Modifier.fillMaxWidth().height(46.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -310,7 +276,7 @@ fun VehicleConnectionCard(
                         tempInput = scooterIp
                         showManualModeDialog = true
                     },
-                    enabled = !isConnected && !connectionBusy && !isRunning,
+                    enabled = !isRunning,
                     modifier = Modifier.weight(1f).height(42.dp),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, CardBorder),
@@ -325,23 +291,16 @@ fun VehicleConnectionCard(
                     onClick = {
                         coroutineScope.launch {
                             isTestingPort = true
-                            try {
-                                val open = manager.testConnection()
-                                Toast.makeText(
-                                    context,
-                                    if (open) "Diagnostic port reachable" else "Unreachable. Is the scooter screen on?",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } catch (cancelled: CancellationException) {
-                                throw cancelled
-                            } catch (_: Exception) {
-                                Toast.makeText(context, "Could not test the address", Toast.LENGTH_SHORT).show()
-                            } finally {
-                                isTestingPort = false
-                            }
+                            val open = manager.testConnection()
+                            isTestingPort = false
+                            Toast.makeText(
+                                context,
+                                if (open) "Reachable" else "Unreachable. Is the scooter screen on?",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
-                    enabled = !connectionBusy && !isRunning && scooterIp.isNotBlank(),
+                    enabled = !isTestingPort && !isRunning,
                     modifier = Modifier.weight(1f).height(42.dp),
                     shape = RoundedCornerShape(8.dp),
                     border = BorderStroke(1.dp, CardBorder),
@@ -357,16 +316,6 @@ fun VehicleConnectionCard(
                         Text("Test", fontSize = 13.sp, fontWeight = FontWeight.Medium)
                     }
                 }
-            }
-
-            if (isConnected) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Disconnect from the status button to choose another scooter.",
-                    fontSize = 12.sp,
-                    color = TextSecondary,
-                    lineHeight = 17.sp
-                )
             }
         }
     }
@@ -467,14 +416,29 @@ fun VehicleConnectionCard(
                         val baseIp = if (trimmed.contains("%")) trimmed.split("%")[0] else trimmed
                         val finalIp = derivedIpv6 ?: baseIp
 
+                        manager.scooterIp.value = finalIp
+                        manager.scooterScope.value = scopeFromPercent
                         showManualModeDialog = false
 
-                        // A reachable TCP port alone does not establish gRPC.
+                        // Quick connection test
                         coroutineScope.launch {
-                            connectVehicle(finalIp, scopeFromPercent)
+                            isTestingPort = true
+                            val open = manager.testConnection(finalIp, scopeFromPercent)
+                            isTestingPort = false
+                            if (open) {
+                                manager.isConnected.value = true
+                                Toast.makeText(context, "Connected", Toast.LENGTH_SHORT).show()
+                                // Show model + MoveOS for the manual path too.
+                                discoveredScooter = DiscoveredScooter(ip = finalIp, scope = scopeFromPercent)
+                                manager.vehicleSummary.value = null
+                                isLoadingSummary = true
+                                try { manager.fetchVehicleSummary() } catch (_: Exception) {}
+                                isLoadingSummary = false
+                            } else {
+                                Toast.makeText(context, "Saved, but not reachable yet", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     },
-                    enabled = cleanInput.isNotBlank() && !isConnected && !connectionBusy && !isRunning,
                     colors = ButtonDefaults.buttonColors(containerColor = AccentMint, contentColor = BgDark),
                     shape = RoundedCornerShape(8.dp)
                 ) {
