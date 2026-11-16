@@ -73,14 +73,14 @@ fun ConnectVehicleScreen(
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "S1Mods",
+                text = "S1 Control",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "by Asjohn720",
+                text = "by AJ",
                 fontSize = 13.sp,
                 color = TextSecondary,
                 modifier = Modifier
@@ -90,7 +90,7 @@ fun ConnectVehicleScreen(
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Connect your scooter to continue",
+                text = "Based on S1Mods • Connect your scooter",
                 fontSize = 12.sp,
                 color = TextMuted,
                 textAlign = TextAlign.Center
@@ -169,17 +169,17 @@ fun ConnectVehicleScreen(
     if (showAbout) {
         AlertDialog(
             onDismissRequest = { showAbout = false },
-            title = { Text("S1Mods", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary) },
+            title = { Text("S1 Control by AJ", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("By Anand (@asjohn720)", fontSize = 13.sp, color = TextSecondary)
+                    Text("Customized by AJ (@Ajayraj2126) · Original S1Mods by Anand (@Asjohn720)", fontSize = 13.sp, color = TextSecondary)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        SocialButton("GitHub", "https://github.com/Asjohn720", context, modifier = Modifier.weight(1f))
-                        SocialButton("X", "https://x.com/asjohn720", context, modifier = Modifier.weight(1f))
-                        SocialButton("Instagram", "https://www.instagram.com/asjohn720.exe", context, modifier = Modifier.weight(1f))
+                        SocialButton("AJ Repo", "https://github.com/Ajayraj2126/ola-s1-mods", context, modifier = Modifier.weight(1f))
+                        SocialButton("Upstream", "https://github.com/Asjohn720/ola-s1-mods", context, modifier = Modifier.weight(1f))
+                        SocialButton("License", "https://github.com/Ajayraj2126/ola-s1-mods/blob/main/LICENSE", context, modifier = Modifier.weight(1f))
                     }
                     Text("MIT License. Unofficial, not affiliated with Ola Electric. 'Ola' and 'MoveOS' are trademarks of Ola Electric; 'S1' is used descriptively.", fontSize = 11.sp, color = TextMuted, lineHeight = 15.sp)
                 }
