@@ -14,7 +14,7 @@ data class AppRelease(
 )
 
 /**
- * Checks the project's latest GitHub Release and compares it to this build.
+ * Checks AJ Edition releases. An original S1Mods APK cannot update this package.
  * Uses the public API (no token); one call on app start. Network only.
  */
 object UpdateChecker {
@@ -27,7 +27,7 @@ object UpdateChecker {
                 connectTimeout = 10000
                 readTimeout = 10000
                 setRequestProperty("Accept", "application/vnd.github+json")
-                setRequestProperty("User-Agent", "S1Mods")
+                setRequestProperty("User-Agent", "S1-Control-AJ")
             }
             if (conn.responseCode !in 200..299) return@withContext null
             val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
@@ -39,12 +39,13 @@ object UpdateChecker {
             if (assets != null) {
                 for (i in 0 until assets.length()) {
                     val name = assets.getJSONObject(i).optString("name")
-                    if (name.endsWith(".apk", ignoreCase = true)) {
+                    if (isAjApk(name)) {
                         apkUrl = assets.getJSONObject(i).optString("browser_download_url")
                         break
                     }
                 }
             }
+            if (apkUrl.isNullOrBlank() || pageUrl.isBlank()) return@withContext null
             AppRelease(tag, pageUrl, apkUrl)
         } catch (_: Exception) {
             null
@@ -52,6 +53,10 @@ object UpdateChecker {
             conn?.disconnect()
         }
     }
+
+    internal fun isAjApk(name: String): Boolean =
+        name.startsWith("S1-Control-AJ-Edition", ignoreCase = true) &&
+            name.endsWith(".apk", ignoreCase = true)
 
     /** True if [tag] names a version higher than the running build. */
     fun isNewer(tag: String, current: String = BuildConfig.VERSION_NAME): Boolean {

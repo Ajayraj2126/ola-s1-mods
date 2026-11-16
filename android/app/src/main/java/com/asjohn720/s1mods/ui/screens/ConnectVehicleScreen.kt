@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.asjohn720.s1mods.SocialButton
 import com.asjohn720.s1mods.model.ScooterManager
 import com.asjohn720.s1mods.ui.components.VehicleConnectionCard
@@ -38,8 +39,7 @@ fun ConnectVehicleScreen(
     onBypass: () -> Unit = {},
     onOpenHelp: () -> Unit = {}
 ) {
-    val isConnected by manager.isConnected.collectAsState()
-    val scooterIp by manager.scooterIp.collectAsState()
+    val isConnected by manager.isConnected.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var showAbout by remember { mutableStateOf(false) }
 
@@ -47,6 +47,7 @@ fun ConnectVehicleScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BgDark)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -171,7 +172,10 @@ fun ConnectVehicleScreen(
             onDismissRequest = { showAbout = false },
             title = { Text("S1 Control by AJ", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Text("Customized by AJ (@Ajayraj2126) · Original S1Mods by Anand (@Asjohn720)", fontSize = 13.sp, color = TextSecondary)
                     Row(
                         modifier = Modifier.fillMaxWidth(),

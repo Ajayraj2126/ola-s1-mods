@@ -121,8 +121,18 @@ class ScooterManager(private val context: Context) {
     ) = withContext(Dispatchers.IO) {
         log("[*] Connecting to vehicle at $ip (Scope: ${scope ?: "auto"}) ...")
         grpcClient?.close()
+        grpcClient = null
+        isConnected.value = false
+        vehicleSummary.value = null
         val client = S1GrpcClient(host = ip, port = 50005, scope = scope)
-        client.connect(timeoutSeconds = 6L)
+        try {
+            client.connect(timeoutSeconds = 6L)
+        } catch (failure: Throwable) {
+            // A failed handshake must not leave an open channel or stale
+            // connected state from the previously selected vehicle.
+            client.close()
+            throw failure
+        }
         grpcClient = client
         scooterIp.value = ip
         scooterScope.value = scope
@@ -132,8 +142,8 @@ class ScooterManager(private val context: Context) {
 
     /**
      * Returns a live gRPC client, building one from the saved address if needed.
-     * Manual Mode / testConnection only flip isConnected; they never build a client,
-     * so gRPC actions must heal the connection here instead of throwing.
+     * A reachability test alone does not create a diagnostic session, so callers
+     * that need gRPC establish and verify it here.
      */
     private suspend fun ensureGrpc(): S1GrpcClient = withContext(Dispatchers.IO) {
         grpcClient?.let { return@withContext it }
@@ -165,7 +175,6 @@ class ScooterManager(private val context: Context) {
     suspend fun testConnection(ip: String = scooterIp.value, scope: Int? = scooterScope.value): Boolean = withContext(Dispatchers.IO) {
         log("[*] Testing port 50005 on $ip...")
         val open = NetworkScanner.testPort(ip, 50005, scope, 1000)
-        isConnected.value = open
         if (open) {
             log("[+] Port 50005 is OPEN and responsive!")
         } else {
@@ -613,6 +622,7 @@ class ScooterManager(private val context: Context) {
 
     fun disconnect() {
         grpcClient?.close()
+        grpcClient = null
         adbManager.disconnect()
         isConnected.value = false
         vehicleSummary.value = null
