@@ -1,3 +1,26 @@
+# Changelog
+
+## [0.2.1-aj] - 2026-11-16
+
+- Updated active app and repository owner branding to **AJ (@Ajayraj2126)**.
+- Migrated the app-owned Kotlin namespace to `com.ajayraj2126.s1control`; retained installation ID `com.aj.s1control`.
+- Updated repository and release links, and refreshed the default and Android documentation.
+- Kept original authorship and license information in the legal notices; retained actual bundled-app package identifiers for compatibility.
+
+## [0.2.0-aj] - 2026-11-16
+
+- Added a buildable AJ dashboard, dark teal theme and separate Android application identity.
+- Corrected false connection success and stale connection state, and added deliberate disconnect confirmation.
+- Improved screen insets, dashboard sizing and dialog scrolling.
+- Limited update checks to AJ-named APK assets from this repository.
+- Verified local and GitHub builds, both updater unit tests, APK signature and uploaded artifact checksums.
+
+## Historical public-source changelog
+
+The entries below are retained from the source project's changelog. They describe
+its historical releases, not additional AJ features or independently verified
+hardware compatibility. See [AJ-SOURCE-AUDIT.md](AJ-SOURCE-AUDIT.md).
+
 ## [1.2.0] - 2026-11-08
 
 ### 🚗 Vehicle Projection Mods Added
