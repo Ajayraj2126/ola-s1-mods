@@ -12,11 +12,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.asjohn720.s1mods"
+        applicationId = "com.aj.s1control"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.2"
+        versionCode = 6
+        versionName = "0.1.0-aj"
 
         vectorDrawables.useSupportLibrary = true
 
