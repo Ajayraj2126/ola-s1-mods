@@ -5,23 +5,19 @@ plugins {
 
 android {
     namespace = "com.asjohn720.s1mods"
-    compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.aj.s1control"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.1.0-aj"
+        versionCode = 7
+        versionName = "0.2.0-aj"
 
         vectorDrawables.useSupportLibrary = true
 
         // GitHub repo that holds the public Releases used for update checks.
-        buildConfigField("String", "GIT_OWNER", "\"Asjohn720\"")
+        buildConfigField("String", "GIT_OWNER", "\"Ajayraj2126\"")
         buildConfigField("String", "GIT_REPO", "\"ola-s1-mods\"")
     }
 
@@ -92,4 +88,5 @@ dependencies {
     implementation(libs.grpc.stub)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
+    testImplementation("junit:junit:4.13.2")
 }
