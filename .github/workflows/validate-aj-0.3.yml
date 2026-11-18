@@ -27,12 +27,36 @@ jobs:
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"
       - name: Unit tests, lint and optimized unsigned release
         working-directory: android
-        run: gradle :app:testDebugUnitTest :app:lintDebug :app:assembleRelease --stacktrace
+        run: gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease --stacktrace
+      - name: Verify package boundaries
+        run: |
+          apk=android/owner/build/outputs/apk/release/app-release-unsigned.apk
+          if unzip -Z1 "$apk" | grep -Ei '(^|/)[^/]+\.(apk|p12|jks|keystore|password)$'; then exit 1; fi
+          unzip -Z1 "$apk" | grep -Fx 'assets/licenses/LICENSE'
+          unzip -Z1 "$apk" | grep -Fx 'assets/licenses/NOTICE.md'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: aj-0.3-validation
           path: |
-            android/app/build/reports/tests/testDebugUnitTest/
-            android/app/build/reports/lint-results-debug.html
-            android/app/build/outputs/apk/release/app-release-unsigned.apk
+            android/owner/build/reports/tests/testDebugUnitTest/
+            android/owner/build/reports/lint-results-debug.html
+            android/owner/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Enable the emulator accelerator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Test launcher and Android Keystore on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          disable-animations: true
+          working-directory: android
+          script: gradle :app:connectedDebugAndroidTest
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AJ-owner-phone-preview
+          path: android/owner/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

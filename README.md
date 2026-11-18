@@ -1,5 +1,11 @@
 # 🛵 S1 Control by AJ — Android Companion for MoveOS
 
+**Current 0.3 candidate:** The Android build now uses the owner-approved connection
+monitor. It reports device status and retries the approved address while the app
+is visible. See the [current setup, scope and validation instructions](android/owner/README.md).
+
+The following material describes the previous mod-capable build and its validation.
+
 [![AJ Release](https://img.shields.io/badge/AJ%20Release-0.3.0--aj-14b8a6.svg)](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-blue.svg)](android/README.md)
 [![Stack](https://img.shields.io/badge/Stack-Kotlin%20Compose%20%2B%20ADB-brightgreen.svg)](android/)
