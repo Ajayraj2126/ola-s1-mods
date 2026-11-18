@@ -4,9 +4,14 @@ plugins {
 }
 
 val releaseStorePath = providers.environmentVariable("AJ_RELEASE_STORE_FILE").orNull
-val releaseStorePassword = providers.environmentVariable("AJ_RELEASE_STORE_PASSWORD").orNull
+fun signingSecret(valueName: String, fileName: String): String? {
+    providers.environmentVariable(valueName).orNull?.takeIf { it.isNotBlank() }?.let { return it }
+    val path = providers.environmentVariable(fileName).orNull?.takeIf { it.isNotBlank() } ?: return null
+    return project.file(path).readText().trim().takeIf { it.isNotBlank() }
+}
+val releaseStorePassword = signingSecret("AJ_RELEASE_STORE_PASSWORD", "AJ_RELEASE_STORE_PASSWORD_FILE")
 val releaseKeyAlias = providers.environmentVariable("AJ_RELEASE_KEY_ALIAS").orNull
-val releaseKeyPassword = providers.environmentVariable("AJ_RELEASE_KEY_PASSWORD").orNull
+val releaseKeyPassword = signingSecret("AJ_RELEASE_KEY_PASSWORD", "AJ_RELEASE_KEY_PASSWORD_FILE")
 val hasReleaseSigning = listOf(releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
     .all { !it.isNullOrBlank() }
 
