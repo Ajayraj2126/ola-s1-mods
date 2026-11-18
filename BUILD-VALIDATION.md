@@ -1,36 +1,41 @@
-# AJ Edition 0.2.1 branding validation
+# AJ Edition 0.3.0 release-candidate validation
 
-Local working tree based on `fd498005a6c02c4ee8f9fb48a31a31c72bdfa991`.
+Validated locally on 18 November 2026 from the `aj-0.3-foundation` worktree.
 
-- APK build and both unit tests passed (0 failures/errors).
-- Package `com.aj.s1control`, version `0.2.1-aj`, code 8.
-- Launcher `com.ajayraj2126.s1control.MainActivity` verified.
-- App-owned old namespace absent from top-level DEX.
-- Primary UI sources contain no original-owner handle; repository/release links use Ajayraj2126.
-- Original full license is bundled unchanged and available from the legal dialog.
-- Renamed Android Auto asset and all bundled package identities verified.
-- APK v2 signature verified.
+- Application ID `com.aj.s1control`, version `0.3.0-aj`, code 9.
+- Launcher namespace `com.ajayraj2126.s1control`.
+- 17 unit tests passed with zero failures or errors.
+- Debug APK compilation, packaging and signature validation passed.
+- Optimized release compilation and R8/resource shrinking passed.
+- Release APK identity was verified with Android Build Tools 36.0.0.
+- Source diff whitespace validation passed.
+- No phone/emulator or physical scooter runtime test was available.
 
-APK SHA-256: `240343213732fa8d5f04662aad7d5469a3fb232fc0cc87ce4c0738672df5bd88`
+Local Android lint could not download its JVM-stub-only dependencies from Google
+Maven inside the execution sandbox. The clean GitHub runner subsequently passed
+unit tests, Android lint and the optimized release build in
+[validation run 44253069586](https://github.com/Ajayraj2126/ola-s1-mods/actions/runs/44253069586).
 
-The local and GitHub builds use different debug certificates. The CI validation file describes the downloadable APK. An older debug installation may need uninstalling before installing a build signed with a different key; this removes local AJ app settings. No phone/emulator or physical scooter runtime test was performed. Public-source v1.4 feature gaps remain documented in AJ-SOURCE-AUDIT.md.
+## Candidate artifacts
 
 ```text
-Verifies
-Verified using v1 scheme (JAR signing): false
-Verified using v2 scheme (APK Signature Scheme v2): true
-Verified using v3 scheme (APK Signature Scheme v3): false
-Verified using v3.1 scheme (APK Signature Scheme v3.1): false
-Verified using v4 scheme (APK Signature Scheme v4): false
-Verified for SourceStamp: false
-Number of signers: 1
-Signer #1 certificate DN: C=US, O=Android, CN=Android Debug
-Signer #1 certificate SHA-256 digest: 3f62f5a10fc152be0ba45a685afb7d2f100e5de2fa05c5afa24de6519e0cde82
-Signer #1 certificate SHA-1 digest: a5076e2eee9c49f9721179d77b02fd6414081a81
-Signer #1 certificate MD5 digest: 050bf425ac6e19f2767c4e53261a9397
-Signer #1 key algorithm: RSA
-Signer #1 key size (bits): 2048
-Signer #1 public key SHA-256 digest: 79e9a2aaa29688c290d2dbff79c5a4f2bbe399087d3095f6199969539a118216
-Signer #1 public key SHA-1 digest: d0f4400157840a14e32cbfdef6b43c73c1eddc22
-Signer #1 public key MD5 digest: 946b8a587dc0d9c2dff0b51fc8a68c63
+Debug APK
+path: android/app/build/outputs/apk/debug/app-debug.apk
+size: approximately 46 MiB
+sha256: 0a48f5dacb58ebfab787e8e2727493e4505dabc231e7f4af161936eda2ecf39a
+
+Optimized unsigned APK
+path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+size: approximately 29 MiB
+sha256: 5a2fb8a5de6522bb680bb98f8f571bdb30ecaec8f3eb2f32933371d8a2e358c4
 ```
+
+The unsigned APK is an R8 validation artifact only and must not be published.
+Publication requires a protected, reusable AJ release key supplied through
+`AJ_RELEASE_STORE_FILE`, `AJ_RELEASE_STORE_PASSWORD`, `AJ_RELEASE_KEY_ALIAS`, and
+`AJ_RELEASE_KEY_PASSWORD`. The final signed APK certificate and checksum must be
+recorded here after signing.
+
+Older 0.2.x downloads used disposable debug certificates. The first properly
+release-signed 0.3 installation can therefore require a one-time uninstall; every
+subsequent AJ release must reuse the same release key.

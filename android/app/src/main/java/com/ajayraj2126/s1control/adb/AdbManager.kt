@@ -6,6 +6,9 @@ import dadb.Dadb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.ajayraj2126.s1control.model.ChangeJournalPlanner
+import com.ajayraj2126.s1control.model.PackageFingerprint
+import com.ajayraj2126.s1control.model.PackageObservation
 
 /**
  * Manages ADB keypair generation and Dadb connection to the vehicle over TCP Port 5555.
@@ -54,6 +57,20 @@ class AdbManager(private val context: Context) {
         out.contains("package:$packageName")
     }
 
+    suspend fun observePackage(packageName: String): PackageObservation = withContext(Dispatchers.IO) {
+        val client = activeDadb ?: throw IllegalStateException("ADB not connected")
+        val listed = client.shell("pm list packages $packageName").allOutput
+            .lineSequence().any { it.trim() == "package:$packageName" }
+        if (!listed) return@withContext PackageObservation(installed = false)
+        val dump = client.shell("dumpsys package $packageName").allOutput
+        val version = Regex("""versionCode=(\d+)""").find(dump)?.groupValues?.get(1)
+        val updated = Regex("""lastUpdateTime=([^\r\n]+)""").find(dump)?.groupValues?.get(1)?.trim()
+        PackageObservation(
+            installed = true,
+            fingerprint = if (version != null && updated != null) PackageFingerprint(version, updated) else null
+        )
+    }
+
     /**
      * Installs an APK file onto the vehicle via ADB streaming install (-r reinstall with data kept).
      */
@@ -81,6 +98,24 @@ class AdbManager(private val context: Context) {
         (response.allOutput).trim()
     }
 
+    suspend fun readSecureSetting(name: String): String? = withContext(Dispatchers.IO) {
+        require(name.matches(Regex("[A-Za-z0-9_.-]+"))) { "Invalid setting name" }
+        val client = activeDadb ?: throw IllegalStateException("ADB not connected")
+        client.shell("settings get secure $name").allOutput.trim()
+            .takeUnless { it.isBlank() || it == "null" }
+    }
+
+    suspend fun writeSecureSetting(name: String, value: String?) = withContext(Dispatchers.IO) {
+        require(name.matches(Regex("[A-Za-z0-9_.-]+"))) { "Invalid setting name" }
+        val client = activeDadb ?: throw IllegalStateException("ADB not connected")
+        if (value == null) {
+            client.shell("settings delete secure $name")
+        } else {
+            require(value.matches(Regex("[A-Za-z0-9_./:$,-]*"))) { "Unsafe setting value" }
+            client.shell("settings put secure $name $value")
+        }
+    }
+
     /**
      * Grants essential permissions for Balls floating overlay.
      */
@@ -95,8 +130,11 @@ class AdbManager(private val context: Context) {
         // 2. Write Settings
         client.shell("appops set $pkg WRITE_SETTINGS allow")
 
-        // 3. Accessibility Service
-        client.shell("settings put secure enabled_accessibility_services $svc")
+        // 3. Accessibility Service. Merge instead of replacing unrelated services.
+        val currentServices = client.shell("settings get secure enabled_accessibility_services")
+            .allOutput.trim().takeUnless { it.isBlank() || it == "null" }
+        val mergedServices = ChangeJournalPlanner.mergeAccessibilityServices(currentServices, svc)
+        client.shell("settings put secure enabled_accessibility_services $mergedServices")
         client.shell("settings put secure accessibility_enabled 1")
 
         // 4. Launch Balls Main Activity

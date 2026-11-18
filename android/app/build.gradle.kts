@@ -3,6 +3,13 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+val releaseStorePath = providers.environmentVariable("AJ_RELEASE_STORE_FILE").orNull
+val releaseStorePassword = providers.environmentVariable("AJ_RELEASE_STORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("AJ_RELEASE_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("AJ_RELEASE_KEY_PASSWORD").orNull
+val hasReleaseSigning = listOf(releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword)
+    .all { !it.isNullOrBlank() }
+
 android {
     namespace = "com.ajayraj2126.s1control"
     compileSdk = 36
@@ -11,8 +18,8 @@ android {
         applicationId = "com.aj.s1control"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.2.1-aj"
+        versionCode = 9
+        versionName = "0.3.0-aj"
 
         vectorDrawables.useSupportLibrary = true
 
@@ -21,11 +28,24 @@ android {
         buildConfigField("String", "GIT_REPO", "\"ola-s1-mods\"")
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("ajRelease") {
+                storeFile = file(releaseStorePath!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+                enableV1Signing = true
+                enableV2Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("ajRelease")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

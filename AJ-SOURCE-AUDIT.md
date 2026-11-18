@@ -30,6 +30,18 @@ AJ 0.2.0 retained the original Kotlin namespace. AJ 0.2.1 migrates app-owned sou
 
 AJ Edition must therefore be described as a customization of the public source, not a feature-complete v1.4 rebuild. Replacing its legacy mod asset with Smart Ball alone would not reproduce the missing companion logic.
 
+The AJ update adds its own Wi-Fi network observer and retained diagnostic session:
+after transport loss it waits for Wi-Fi, retries the last verified endpoint with
+capped backoff, and performs at most one discovery fallback per attempt. A manual
+disconnect disables reconnection, and no installation, ADB unlock, or shell command
+is replayed.
+
+AJ 0.3 also adds a narrower, evidence-based restoration workflow. It journals
+before/after values per hashed vehicle identity, previews live state, restores
+permissions and settings only when they still match AJ's applied value, preserves
+pre-existing or replaced packages, and restores diagnostic mode last. It is not an
+OEM factory reset and cannot reverse changes made before the 0.3 journal existed.
+
 ## Concrete correctness findings
 
 Connection lifecycle fixes were made in `ScooterManager.kt`: discard the closed client reference on disconnect; clear prior connection state before a new handshake; close a failed candidate client; and keep a TCP reachability test from publishing a connected diagnostic session. The corresponding UI must report success only after `manager.connect` verifies gRPC; the original connection card caught a connection exception and set the state to connected anyway.

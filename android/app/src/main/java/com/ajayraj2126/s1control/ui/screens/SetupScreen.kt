@@ -38,7 +38,6 @@ import com.ajayraj2126.s1control.model.SetupStep
 import com.ajayraj2126.s1control.model.VehicleSummary
 import com.ajayraj2126.s1control.ui.components.VehicleConnectionCard
 import com.ajayraj2126.s1control.ui.theme.*
-import kotlinx.coroutines.launch
 
 enum class SetupSubTab(val title: String) {
     SETUP("Setup & Vehicle"),
@@ -49,7 +48,6 @@ enum class SetupSubTab(val title: String) {
 fun SetupScreen(manager: ScooterManager) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
-    val coroutineScope = rememberCoroutineScope()
 
     val scooterIp by manager.scooterIp.collectAsState()
     val scooterScope by manager.scooterScope.collectAsState()
@@ -60,15 +58,24 @@ fun SetupScreen(manager: ScooterManager) {
     val errorMessage by manager.errorMessage.collectAsState()
     val logs by manager.logs.collectAsState()
     val vehicleSummary by manager.vehicleSummary.collectAsState()
+    val isRemovalRunning by manager.isRemovalRunning.collectAsState()
+    val removalPreview by manager.removalPreview.collectAsState()
+    val removalProgress by manager.removalProgress.collectAsState()
+    val removalResult by manager.removalResult.collectAsState()
 
     var activeSubTab by remember { mutableStateOf(SetupSubTab.SETUP) }
     var showSetupPackageDialog by remember { mutableStateOf(false) }
     var showCompletionDialog by remember { mutableStateOf(false) }
+    var showRemovalDialog by remember { mutableStateOf(false) }
+    var showRemovalResult by remember { mutableStateOf(false) }
 
     LaunchedEffect(success) {
         if (success) {
             showCompletionDialog = true
         }
+    }
+    LaunchedEffect(removalResult) {
+        if (removalResult != null) showRemovalResult = true
     }
 
     // App selection state for setup: Balls, Android Auto, Music Mod checked by default
@@ -364,6 +371,38 @@ fun SetupScreen(manager: ScooterManager) {
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold
                         )
+                    }
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth().border(1.dp, CardBorder, RoundedCornerShape(12.dp)),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Restore scooter changes", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Text(
+                            "Preview and remove only verified changes recorded by AJ. Pre-existing or subsequently changed apps are preserved.",
+                            fontSize = 11.sp, lineHeight = 16.sp, color = TextSecondary
+                        )
+                        OutlinedButton(
+                            onClick = {
+                                if (manager.requestRemovalPreview()) showRemovalDialog = true
+                            },
+                            enabled = isConnected && !isRunning && !isRemovalRunning,
+                            modifier = Modifier.fillMaxWidth().height(42.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            if (isRemovalRunning) {
+                                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = AccentMint)
+                                Spacer(Modifier.width(8.dp))
+                                Text(removalProgress?.message ?: "Restoring", fontSize = 12.sp)
+                            } else {
+                                Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(17.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Preview AJ restoration", fontSize = 12.sp)
+                            }
+                        }
                     }
                 }
 
@@ -707,9 +746,7 @@ fun SetupScreen(manager: ScooterManager) {
                 Button(
                     onClick = {
                         showSetupPackageDialog = false
-                        coroutineScope.launch {
-                            manager.runFullSetup(selectedApps)
-                        }
+                        manager.startFullSetup(selectedApps)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = AccentMint, contentColor = BgDark),
                     shape = RoundedCornerShape(8.dp)
@@ -724,6 +761,57 @@ fun SetupScreen(manager: ScooterManager) {
             },
             containerColor = SurfaceDark,
             shape = RoundedCornerShape(12.dp)
+        )
+    }
+
+    if (showRemovalDialog) {
+        val preview = removalPreview
+        AlertDialog(
+            onDismissRequest = { if (!isRemovalRunning) showRemovalDialog = false },
+            title = { Text("Remove AJ changes?", color = TextPrimary, fontWeight = FontWeight.SemiBold) },
+            text = {
+                if (preview == null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = AccentMint)
+                        Spacer(Modifier.width(10.dp))
+                        Text("Inspecting recorded changes…", color = TextSecondary)
+                    }
+                } else {
+                    Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (!preview.hasChanges) Text("No verified AJ-owned changes are available to remove.", color = TextSecondary)
+                        preview.packages.forEach { Text("• Remove ${it.displayName}", fontSize = 12.sp, color = TextPrimary) }
+                        preview.settings.forEach { Text("• Restore ${it.label}", fontSize = 12.sp, color = TextPrimary) }
+                        preview.warnings.forEach { Text("Warning: $it", fontSize = 11.sp, color = StatusWarning) }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { manager.startRemoveAjChanges(); showRemovalDialog = false },
+                    enabled = preview?.hasChanges == true && !isRemovalRunning,
+                    colors = ButtonDefaults.buttonColors(containerColor = StatusDanger, contentColor = TextPrimary)
+                ) { Text("Remove verified changes") }
+            },
+            dismissButton = { TextButton(onClick = { showRemovalDialog = false }, enabled = !isRemovalRunning) { Text("Cancel") } },
+            containerColor = SurfaceDark
+        )
+    }
+
+    if (showRemovalResult && removalResult != null) {
+        val result = removalResult!!
+        AlertDialog(
+            onDismissRequest = { showRemovalResult = false },
+            title = { Text(if (result.successful) "Restoration complete" else "Restoration needs attention", color = TextPrimary) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    result.removedPackages.forEach { Text("Removed: $it", color = StatusOk, fontSize = 12.sp) }
+                    result.restoredSettings.forEach { Text("Restored: $it", color = StatusOk, fontSize = 12.sp) }
+                    result.skipped.forEach { Text("Skipped: $it", color = StatusWarning, fontSize = 12.sp) }
+                    result.failures.forEach { Text("Failed: $it", color = StatusDanger, fontSize = 12.sp) }
+                }
+            },
+            confirmButton = { Button(onClick = { showRemovalResult = false }) { Text("Done") } },
+            containerColor = SurfaceDark
         )
     }
 

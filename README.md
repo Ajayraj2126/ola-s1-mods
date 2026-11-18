@@ -1,9 +1,9 @@
 # 🛵 S1 Control by AJ — Android Companion for MoveOS
 
-[![AJ Release](https://img.shields.io/badge/AJ%20Release-0.2.1--aj-14b8a6.svg)](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
+[![AJ Release](https://img.shields.io/badge/AJ%20Release-0.3.0--aj-14b8a6.svg)](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-blue.svg)](android/README.md)
 [![Stack](https://img.shields.io/badge/Stack-Kotlin%20Compose%20%2B%20ADB-brightgreen.svg)](android/)
-[![Build](https://img.shields.io/badge/Build-Debug%20Signed-orange.svg)](BUILD-VALIDATION.md)
+[![Build](https://img.shields.io/badge/Build-Release%20Candidate-orange.svg)](BUILD-VALIDATION.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **S1 Control by AJ** is an Android companion app maintained by **AJ (@Ajayraj2126)**
@@ -30,13 +30,13 @@ Compose interface.
    **Shell** for the action you need. Offline browsing is also available.
 
 > [!NOTE]
-> The APK is a **debug-signed development build**. If Android reports a signing
-> conflict with an older AJ build, uninstall the older app before installing it.
-> Uninstalling clears local AJ app data, including settings.
+> Version 0.3 introduces a stable AJ release-signing configuration. Because older
+> 0.2.x downloads used disposable debug certificates, installing 0.3 may require a
+> one-time uninstall. Keep the 0.3 signing key for every later update.
 
 > [!IMPORTANT]
-> Mod installation can uninstall an existing mod and remove its data. Installed
-> applications and settings may persist after a scooter restart.
+> Mod updates are installed in place so AJ does not intentionally erase an existing
+> mod's data. Installed applications and settings may persist after a scooter restart.
 
 ---
 
@@ -46,8 +46,12 @@ Compose interface.
   setup progress and recent session activity.
 - 🔍 **Discovery & Manual Connection:** Local-network discovery, address entry
   and a verified diagnostic handshake before showing a connected scooter.
+- 🔄 **Automatic Reconnect:** Waits for hotspot Wi-Fi, retries the last verified
+  endpoint with capped delays and never replays a scooter-changing action.
 - ⚡ **Mod Setup:** Select bundled apps, authorize ADB and apply the supported
   installation and permission steps from the public source.
+- ♻️ **AJ Restoration:** Previews and reverses only verified AJ-owned packages and
+  settings while preserving pre-existing or subsequently changed state.
 - 📦 **App Management:** Manage bundled apps, download supported online apps,
   install a local APK and remove installed packages.
 - 🧰 **Scooter Toolbox:** Capture the display, inspect model/software/RAM
@@ -71,8 +75,10 @@ Compose interface.
 
 > [!IMPORTANT]
 > This edition customizes the **published source**. Dynamic Island, My S1
-> CAN/SOH/cycles, vehicle lock/boot controls, full Smart Ball, complete factory
-> restoration and resume reconnect are not implemented here. See the
+> CAN/SOH/cycles, vehicle lock/boot controls, full Smart Ball and an OEM factory
+> reset are not implemented here. AJ restoration reverses only changes recorded by
+> version 0.3 onward. AJ Edition adds verified Wi-Fi session
+> reconnection without replaying scooter changes. See the
 > [source compatibility audit](AJ-SOURCE-AUDIT.md) for the verified comparison.
 
 Use the app while parked and only with hardware you own or are authorized to
@@ -84,14 +90,14 @@ administer. This edition is independent of Ola Electric.
 
 | Component | Current configuration |
 | :--- | :--- |
-| **AJ version** | `0.2.1-aj` · version code `8` |
+| **AJ version** | `0.3.0-aj` · version code `9` |
 | **Android application ID** | `com.aj.s1control` |
 | **App-owned namespace** | `com.ajayraj2126.s1control` |
 | **Android SDK** | Minimum `26` · target `35` · compile `36` |
 | **Interface** | Kotlin and Jetpack Compose |
 | **Diagnostics / app transport** | gRPC on TCP `50005` · ADB on TCP `5555` |
-| **Distribution** | Debug-signed APK and Android source ZIP on GitHub |
-| **Recorded validation** | Build, two unit tests, APK identity/signature and artifact checksums |
+| **Distribution** | Release APK and Android source ZIP on GitHub |
+| **Recorded validation** | Unit tests, lint, optimized build, APK identity/signature and artifact checksums |
 
 The [validation report](BUILD-VALIDATION.md) records the local build. The release's
 CI validation file records the downloadable APK and its signing certificate.
