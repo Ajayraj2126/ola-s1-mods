@@ -70,7 +70,8 @@ cd android
 
 Debug APK: `android/app/build/outputs/apk/debug/app-debug.apk`. Release signing is
 supplied through the `AJ_RELEASE_*` environment variables documented in the Gradle
-configuration. Android 8.0/API 26 is the minimum.
+configuration. Password-file variables are supported so secrets do not need to
+appear in shell history. Android 8.0/API 26 is the minimum.
 
 ## Install note
 

@@ -3,7 +3,7 @@
 [![AJ Release](https://img.shields.io/badge/AJ%20Release-0.3.0--aj-14b8a6.svg)](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-blue.svg)](app/build.gradle.kts)
 [![Stack](https://img.shields.io/badge/Stack-Kotlin%20Compose%20%2B%20ADB-brightgreen.svg)](app/)
-[![Build](https://img.shields.io/badge/Build-Release%20Candidate-orange.svg)](../BUILD-VALIDATION.md)
+[![Build](https://img.shields.io/badge/Build-Release%20Validated-blue.svg)](../BUILD-VALIDATION.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../LICENSE)
 
 **S1 Control by AJ** is an Android companion app maintained by **AJ (@Ajayraj2126)**
