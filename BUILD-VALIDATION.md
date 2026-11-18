@@ -12,9 +12,9 @@ Validated locally on 18 November 2026 from the `aj-0.3-foundation` worktree.
 - No phone/emulator or physical scooter runtime test was available.
 
 Local Android lint could not download its JVM-stub-only dependencies from Google
-Maven inside the execution sandbox. The repository workflow reruns tests, lint and
-the optimized release build on GitHub before publication. This report must not be
-changed to “lint passed” unless that workflow succeeds.
+Maven inside the execution sandbox. The clean GitHub runner subsequently passed
+unit tests, Android lint and the optimized release build in
+[validation run 44253069586](https://github.com/Ajayraj2126/ola-s1-mods/actions/runs/44253069586).
 
 ## Candidate artifacts
 
