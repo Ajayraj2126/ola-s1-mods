@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0-aj] - 2026-11-18
+
+- Added hotspot-aware automatic reconnect using a fresh verified gRPC handshake,
+  saved endpoint retry, discovery fallback and capped delays.
+- Added explicit waiting/reconnecting/failed UI states; manual disconnect disables
+  reconnect and no scooter-changing action is replayed.
+- Added a durable per-vehicle AJ change journal and conservative restoration preview.
+- Preserve pre-existing apps and data; remove only unchanged AJ-installed packages.
+- Merge accessibility services and restore only AJ-owned setting changes, with the
+  original scooter diagnostic mode restored last.
+- Replaced blocking gRPC unary waits with cancellable coroutine calls and final-status
+  validation.
+- Added stable release-signing configuration through protected `AJ_RELEASE_*` inputs.
+
 ## [0.2.1-aj] - 2026-11-16
 
 - Updated active app and repository owner branding to **AJ (@Ajayraj2126)**.

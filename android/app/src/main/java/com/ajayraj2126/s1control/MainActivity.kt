@@ -1,6 +1,7 @@
 package com.ajayraj2126.s1control
 
 import android.Manifest
+import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -34,8 +35,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.ajayraj2126.s1control.model.ScooterManager
+import com.ajayraj2126.s1control.model.SessionState
 import com.ajayraj2126.s1control.ui.components.OpenSourceLicensesButton
+import com.ajayraj2126.s1control.ui.components.SessionStatusBanner
 import com.ajayraj2126.s1control.ui.screens.ConnectVehicleScreen
 import com.ajayraj2126.s1control.ui.screens.AjHomeScreen
 import com.ajayraj2126.s1control.ui.screens.CustomApkScreen
@@ -52,13 +59,19 @@ enum class AppTab(val title: String, val icon: ImageVector) {
     TERMINAL("Shell", Icons.Default.Terminal)
 }
 
+class ScooterManagerViewModel(application: Application) : AndroidViewModel(application) {
+    val manager = ScooterManager(application)
+
+    override fun onCleared() {
+        manager.close()
+        super.onCleared()
+    }
+}
+
 class MainActivity : ComponentActivity() {
-
-    private lateinit var scooterManager: ScooterManager
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        scooterManager = ScooterManager(applicationContext)
+        val scooterManager = ViewModelProvider(this)[ScooterManagerViewModel::class.java].manager
 
         setContent {
             S1ModsTheme {
@@ -67,10 +80,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        scooterManager.disconnect()
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,9 +95,14 @@ fun MainAppScaffold(manager: ScooterManager) {
     }
     val isConnected by manager.isConnected.collectAsStateWithLifecycle()
     val isSetupRunning by manager.isSetupRunning.collectAsStateWithLifecycle()
+    val sessionState by manager.sessionState.collectAsStateWithLifecycle()
     var bypassConnectionGate by rememberSaveable { mutableStateOf(false) }
+    var hasOpenedWorkspace by rememberSaveable { mutableStateOf(false) }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { manager.onResume() }
 
     LaunchedEffect(isConnected) {
+        if (isConnected) hasOpenedWorkspace = true
         if (!isConnected) showDisconnectDialog = false
     }
 
@@ -123,15 +137,23 @@ fun MainAppScaffold(manager: ScooterManager) {
         permissionLauncher.launch(permissions)
     }
 
-    if (!isConnected && !bypassConnectionGate) {
-        ConnectVehicleScreen(
-            manager = manager,
-            onBypass = { bypassConnectionGate = true },
-            onOpenHelp = { showOnboardingDialog = true }
-        )
+    if (!isConnected && !bypassConnectionGate && !hasOpenedWorkspace) {
+        Column(Modifier.fillMaxSize().background(BgDark).safeDrawingPadding()) {
+            if (sessionState !is SessionState.Disconnected) {
+                SessionStatusBanner(sessionState, onChooseScooter = {})
+            }
+            Box(Modifier.weight(1f)) {
+                ConnectVehicleScreen(
+                    manager = manager,
+                    onBypass = { bypassConnectionGate = true },
+                    onOpenHelp = { showOnboardingDialog = true }
+                )
+            }
+        }
     } else {
         Scaffold(
             topBar = {
+                Column {
                 TopAppBar(
                     title = {
                         Column(
@@ -162,9 +184,16 @@ fun MainAppScaffold(manager: ScooterManager) {
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
                                 .background(SurfaceVariantDark)
-                                .clickable(role = Role.Button) {
+                                .clickable(
+                                    enabled = !isSetupRunning && sessionState !is SessionState.Connecting &&
+                                        sessionState !is SessionState.Reconnecting,
+                                    role = Role.Button
+                                ) {
                                     if (isConnected) showDisconnectDialog = true
-                                    else bypassConnectionGate = false
+                                    else {
+                                        bypassConnectionGate = false
+                                        hasOpenedWorkspace = false
+                                    }
                                 }
                                 .heightIn(min = 48.dp)
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -173,11 +202,23 @@ fun MainAppScaffold(manager: ScooterManager) {
                                 modifier = Modifier
                                     .size(6.dp)
                                     .clip(CircleShape)
-                                    .background(if (isConnected) StatusOk else StatusDanger)
+                                    .background(when (sessionState) {
+                                        is SessionState.Connected -> StatusOk
+                                        is SessionState.Connecting, is SessionState.Reconnecting,
+                                        is SessionState.WaitingForNetwork -> StatusWarning
+                                        else -> StatusDanger
+                                    })
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (isConnected) "Connected" else "Offline",
+                                text = when (sessionState) {
+                                    is SessionState.Connected -> "Connected"
+                                    is SessionState.Connecting -> "Connecting"
+                                    is SessionState.Reconnecting -> "Reconnecting"
+                                    is SessionState.WaitingForNetwork -> "Waiting for Wi-Fi"
+                                    is SessionState.Failed -> "Failed"
+                                    else -> "Offline"
+                                },
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = if (isConnected) TextPrimary else TextMuted
@@ -207,6 +248,11 @@ fun MainAppScaffold(manager: ScooterManager) {
                         titleContentColor = TextPrimary
                     )
                 )
+                SessionStatusBanner(sessionState, onChooseScooter = {
+                    bypassConnectionGate = false
+                    hasOpenedWorkspace = false
+                })
+                }
             },
             bottomBar = {
                 NavigationBar(
@@ -277,6 +323,7 @@ fun MainAppScaffold(manager: ScooterManager) {
                     showDisconnectDialog = false
                     manager.disconnect()
                     bypassConnectionGate = false
+                    hasOpenedWorkspace = false
                 }) { Text("Disconnect", color = StatusDanger) }
             },
             dismissButton = {

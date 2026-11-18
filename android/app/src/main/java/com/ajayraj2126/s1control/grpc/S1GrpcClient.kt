@@ -105,23 +105,7 @@ class S1GrpcClient(
             CallOptions.DEFAULT.withDeadlineAfter(timeoutSeconds, TimeUnit.SECONDS)
         )
 
-        val resultHolder = CompletableResult<ByteArray>()
-        call.start(object : ClientCall.Listener<ByteArray>() {
-            override fun onMessage(message: ByteArray) {
-                resultHolder.complete(message)
-            }
-            override fun onClose(status: io.grpc.Status, trailers: io.grpc.Metadata) {
-                if (!status.isOk && !resultHolder.isDone()) {
-                    resultHolder.completeExceptionally(status.asRuntimeException())
-                }
-            }
-        }, io.grpc.Metadata())
-
-        call.request(1)
-        call.sendMessage(payload)
-        call.halfClose()
-
-        ProtoUtils.decodeResponse(resultHolder.await())
+        ProtoUtils.decodeResponse(awaitUnaryCall(call, payload))
     }
 
     /**
@@ -217,6 +201,27 @@ echo "bound ${'$'}T"
         return (status in 0..1 && out.contains("bound"))
     }
 
+    /**
+     * Removes only the temporary ADB-key mounts/files created by this app and
+     * restores the exact previously observed scooter mode.
+     */
+    suspend fun restoreAdb(originalScooterMode: String?): Boolean {
+        val mode = originalScooterMode.orEmpty().trim()
+        require(mode.matches(Regex("[A-Za-z0-9._-]*"))) { "Unsafe scooter mode" }
+        val script = """#!/system/bin/sh
+for T in /adbkeymoveos3_pub_prod /adb_keys /data/misc/adb/adbkeymoveos3_pub_prod /data/misc/adb/adb_keys; do
+    mount | grep -q " ${'$'}T " && umount "${'$'}T"
+done
+rm -f /data/local/tmp/adb_keys_mine /data/local/tmp/bind_key.sh /data/local/tmp/revert_key.sh
+setprop persist.ola.security.scootermode '$mode'
+test "${'$'}(getprop persist.ola.security.scootermode)" = '$mode'
+""".trimIndent()
+        push(script.toByteArray(StandardCharsets.UTF_8), "/data/local/tmp/revert_key.sh")
+        shell("chmod 755 /data/local/tmp/revert_key.sh", 15L)
+        val (status, _) = shell("sh /data/local/tmp/revert_key.sh", 20L)
+        return status in 0..1
+    }
+
     fun close() {
         try {
             channel?.shutdownNow()
@@ -224,39 +229,5 @@ echo "bound ${'$'}T"
         channel = null
     }
 
-    private class CompletableResult<T> {
-        private val lock = Object()
-        private var result: T? = null
-        private var exception: Throwable? = null
-        private var done = false
-
-        fun complete(value: T) {
-            synchronized(lock) {
-                result = value
-                done = true
-                lock.notifyAll()
-            }
-        }
-
-        fun completeExceptionally(e: Throwable) {
-            synchronized(lock) {
-                exception = e
-                done = true
-                lock.notifyAll()
-            }
-        }
-
-        fun isDone(): Boolean = synchronized(lock) { done }
-
-        fun await(): T {
-            synchronized(lock) {
-                while (!done) {
-                    lock.wait()
-                }
-                exception?.let { throw it }
-                return result ?: throw IllegalStateException("Result is null")
-            }
-        }
-    }
 }
 
