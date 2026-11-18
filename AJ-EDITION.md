@@ -1,5 +1,11 @@
 # S1 Control by AJ — 0.3.0
 
+**Current 0.3 candidate:** The Android build now uses the owner-approved connection
+monitor. It reports device status and retries the approved address while the app
+is visible. See the [current setup, scope and validation instructions](android/owner/README.md).
+
+The following material describes the previous mod-capable build and its validation.
+
 Customized Android companion app maintained by **AJ (@Ajayraj2126)**.
 
 - [Repository](https://github.com/Ajayraj2126/ola-s1-mods)

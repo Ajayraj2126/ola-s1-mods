@@ -1,5 +1,11 @@
 # AJ Edition 0.3.0 release validation
 
+**Current 0.3 candidate:** The Android build now uses the owner-approved connection
+monitor. It reports device status and retries the approved address while the app
+is visible. See the [current setup, scope and validation instructions](android/owner/README.md).
+
+The following material describes the previous mod-capable build and its validation.
+
 Validated locally on 18 November 2026 from the `aj-0.3-foundation` worktree.
 
 - Application ID `com.aj.s1control`, version `0.3.0-aj`, code 9.

@@ -22,3 +22,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "S1Mods"
 include(":app")
+// Build the owner-approved application in isolation from the historical mod tools.
+project(":app").projectDir = file("owner")
