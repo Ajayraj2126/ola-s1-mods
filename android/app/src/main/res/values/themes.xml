@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="Theme.S1Mods" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#07121D</item>
-        <item name="android:navigationBarColor">#07121D</item>
-        <item name="android:windowBackground">#07121D</item>
-    </style>
-</resources>
-
