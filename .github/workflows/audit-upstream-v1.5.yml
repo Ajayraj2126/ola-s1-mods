@@ -1,0 +1,64 @@
+name: Inspect published S1Mods v1.5 APK metadata
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/audit-upstream-v1.5.yml"
+      - "UPSTREAM-v1.5-PARITY.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  metadata-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download published release binaries (no user upload)
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --silent --show-error \
+            "https://github.com/Asjohn720/ola-s1-mods/releases/download/v1.4/S1Mods-v1.4.apk" \
+            --output /tmp/upstream-v1.4.apk
+          curl --fail --location --retry 3 --silent --show-error \
+            "https://github.com/Asjohn720/ola-s1-mods/releases/download/v1.5/S1Mods-v1.5.apk" \
+            --output /tmp/upstream-v1.5.apk
+
+      - name: Print metadata only; never export upstream APK or source
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          from zipfile import ZipFile, BadZipFile
+          files = {'v1.4': Path('/tmp/upstream-v1.4.apk'), 'v1.5': Path('/tmp/upstream-v1.5.apk')}
+          report = ['# S1Mods release package structure audit', '', 'No APK bytes, DEX dumps, resources or recovered code are published.', '']
+          sets = {}
+          for label, p in files.items():
+              with ZipFile(p) as z:
+                  entries = {x.filename: x.file_size for x in z.infolist() if not x.is_dir()}
+                  sets[label] = set(entries)
+                  dex = sorted((k, v) for k, v in entries.items() if k.startswith('classes') and k.endswith('.dex'))
+                  embedded = sorted((k, v) for k, v in entries.items() if k.lower().endswith('.apk'))
+                  report += [f'## {label}', f'- SHA256: \`{hashlib.sha256(p.read_bytes()).hexdigest()}\`',
+                             f'- APK size: {p.stat().st_size:,} bytes',
+                             f'- ZIP entries: {len(entries)}',
+                             f'- DEX files: {len(dex)}',
+                             f'- Embedded APK files: {len(embedded)}']
+                  report += [f'  - {k} ({v:,} bytes)' for k,v in embedded[:30]]
+                  report += ['']
+          added = sorted(sets['v1.5'] - sets['v1.4'])
+          removed = sorted(sets['v1.4'] - sets['v1.5'])
+          report += ['## Binary package path changes', f'- Added paths: {len(added)}',
+                     f'- Removed paths: {len(removed)}',
+                     '- The counts describe ZIP member paths only, NOT functionality or licensing.', '']
+          Path('upstream-v1.5-package-audit.md').write_text('\n'.join(report))
+          print('\n'.join(report))
+          PY
+
+      - name: Upload the metadata report only
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-v1.5-metadata
+          path: upstream-v1.5-package-audit.md
+          retention-days: 7
