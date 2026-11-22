@@ -86,7 +86,7 @@ internal object OfficialV15Mods {
                         ?: throw IOException("Release missing " + spec.asset)
                     if (entry.size > 30_000_000L) throw IOException("Unexpected mod size")
                     val dest = File(dir, spec.asset)
-                    val temp = File(dir, spec.asset + ".tmp")
+                    val temp = File(dir, spec.asset + ".pending.apk")
                     var size = 0L
                     try {
                         zip.getInputStream(entry).use { input ->
@@ -133,7 +133,10 @@ fun OfficialV15ModsCard(manager: ScooterManager) {
     val connected by manager.isConnected.collectAsStateWithLifecycle()
     val setupRunning by manager.isSetupRunning.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var prepared by remember { mutableStateOf(OfficialV15Mods.existing(context)) }
+    var prepared by remember { mutableStateOf<List<OfficialV15Mods.Prepared>>(emptyList()) }
+    LaunchedEffect(Unit) {
+        prepared = withContext(Dispatchers.IO) { OfficialV15Mods.existing(context) }
+    }
     var downloading by remember { mutableStateOf(false) }
     var installing by remember { mutableStateOf<String?>(null) }
     var pending by remember { mutableStateOf<OfficialV15Mods.Prepared?>(null) }
