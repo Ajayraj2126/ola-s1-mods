@@ -20,6 +20,7 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name="com.ajayraj2126.s1control.MainActivity"
+            android:launchMode="singleTop"
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:theme="@style/Theme.S1Mods">
@@ -27,6 +28,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/aj_shortcuts" />
         </activity>
     </application>
 
