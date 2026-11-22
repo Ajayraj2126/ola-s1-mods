@@ -1,6 +1,6 @@
 # 🛵 S1 Control by AJ — Android Application
 
-[![AJ Release](https://img.shields.io/badge/AJ%20Release-0.3.0--aj-14b8a6.svg)](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
+[![AJ Release](https://img.shields.io/badge/AJ%20Release-0.4.0--aj-14b8a6.svg)](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-blue.svg)](app/build.gradle.kts)
 [![Stack](https://img.shields.io/badge/Stack-Kotlin%20Compose%20%2B%20ADB-brightgreen.svg)](app/)
 [![Build](https://img.shields.io/badge/Build-Release%20Validated-blue.svg)](../BUILD-VALIDATION.md)
@@ -67,7 +67,7 @@ Compose interface.
 
 | Component | Current value |
 | :--- | :--- |
-| **AJ version / code** | `0.3.0-aj` / `9` |
+| **AJ version / code** | `0.4.0-aj` / `10` |
 | **Phone minimum** | Android 8.0 / API 26 |
 | **Compile / target SDK** | API 36 / API 35 |
 | **JDK** | 21 |
