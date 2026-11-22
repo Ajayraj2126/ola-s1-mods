@@ -36,6 +36,11 @@ fun ToolboxScreen(manager: ScooterManager) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    var showAdvancedDiagnostics by remember { mutableStateOf(false) }
+    if (showAdvancedDiagnostics) {
+        AdvancedDiagnosticsScreen(manager, onBack = { showAdvancedDiagnostics = false })
+        return
+    }
 
     var activeAction by remember { mutableStateOf<String?>(null) }
 
@@ -53,6 +58,31 @@ fun ToolboxScreen(manager: ScooterManager) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Card(
+            modifier = Modifier.fillMaxWidth()
+                .border(1.dp, CardBorder, RoundedCornerShape(12.dp))
+                .clickable { showAdvancedDiagnostics = true },
+            colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Row(
+                Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.MonitorHeart, contentDescription = null,
+                    tint = AccentMint, modifier = Modifier.size(28.dp))
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Advanced diagnostics", color = TextPrimary,
+                        fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Read-only live head-unit health",
+                        color = TextSecondary, fontSize = 12.sp)
+                }
+                Icon(Icons.Default.ChevronRight, contentDescription = "Open",
+                    tint = TextSecondary)
+            }
+        }
+
         // Section Header
         Text(
             text = "Controls",
