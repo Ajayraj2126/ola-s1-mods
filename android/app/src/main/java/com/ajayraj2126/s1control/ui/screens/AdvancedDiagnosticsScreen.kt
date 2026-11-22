@@ -65,8 +65,8 @@ fun AdvancedDiagnosticsScreen(manager: ScooterManager, onBack: () -> Unit) {
                     fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp
                 )
                 Button(
-                    onClick = {
-                        if (loading || !connected) return@Button
+                    onClick = read@{
+                        if (loading || !connected) return@read
                         scope.launch {
                             loading = true
                             error = null
