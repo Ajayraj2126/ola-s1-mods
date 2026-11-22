@@ -56,6 +56,21 @@ jobs:
           print('\n'.join(report))
           PY
 
+      - name: Inspect nested mod package identities (metadata only)
+        run: |
+          set -euo pipefail
+          AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt 2>/dev/null | sort -V | tail -1 || true)
+          if [ -z "$AAPT" ]; then
+            echo "Android SDK aapt is not installed; skipping nested APK identities."
+            exit 0
+          fi
+          for apk in smartball-latest.apk com.asjohn720.androidauto.apk musicmod-release.apk openplay-latest.apk; do
+            unzip -p /tmp/upstream-v1.5.apk "assets/$apk" > "/tmp/$apk"
+            echo "::group::$apk"
+            "$AAPT" dump badging "/tmp/$apk" | grep -E '^(package:|sdkVersion:|targetSdkVersion:|launchable-activity:)' || true
+            echo "::endgroup::"
+          done
+
       - name: Upload the metadata report only
         uses: actions/upload-artifact@v4
         with:
