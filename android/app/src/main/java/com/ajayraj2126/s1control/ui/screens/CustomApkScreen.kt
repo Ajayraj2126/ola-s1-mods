@@ -144,6 +144,10 @@ fun CustomApkScreen(manager: ScooterManager) {
             color = TextMuted
         )
 
+        // Opt-in import from official S1Mods v1.5, pinned by release SHA-256.
+        // No silent download or automatic installation.
+        OfficialV15ModsCard(manager)
+
         // 1. DYNAMIC LIVE RAM USAGE CARD (Green >= 200MB, Orange 150-200MB, Red < 150MB)
         val freeMb = ramInfo?.freeMb ?: 0
         val ramColor = when {

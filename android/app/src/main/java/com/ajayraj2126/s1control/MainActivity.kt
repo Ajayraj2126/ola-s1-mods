@@ -69,25 +69,39 @@ class ScooterManagerViewModel(application: Application) : AndroidViewModel(appli
 }
 
 class MainActivity : ComponentActivity() {
+    private val shortcutTarget = mutableStateOf<AppTab?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        shortcutTarget.value = parseShortcut(intent)
         val scooterManager = ViewModelProvider(this)[ScooterManagerViewModel::class.java].manager
 
         setContent {
             S1ModsTheme {
-                MainAppScaffold(scooterManager)
+                MainAppScaffold(scooterManager, requestedTab = shortcutTarget.value)
             }
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        shortcutTarget.value = parseShortcut(intent)
+    }
+
+    private fun parseShortcut(intent: Intent?): AppTab? =
+        AppTab.entries.firstOrNull { it.name == intent?.getStringExtra("aj_tab") }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainAppScaffold(manager: ScooterManager) {
+fun MainAppScaffold(manager: ScooterManager, requestedTab: AppTab? = null) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("s1mods_prefs", android.content.Context.MODE_PRIVATE) }
     var selectedTab by rememberSaveable { mutableStateOf(AppTab.HOME) }
+    LaunchedEffect(requestedTab) {
+        if (requestedTab != null) selectedTab = requestedTab
+    }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showDisconnectDialog by remember { mutableStateOf(false) }
     var showOnboardingDialog by remember {
