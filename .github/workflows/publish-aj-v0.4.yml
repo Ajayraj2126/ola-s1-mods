@@ -1,0 +1,160 @@
+name: Publish S1 Control by AJ 0.4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/app/build.gradle.kts"
+      - ".github/workflows/publish-aj-v0.4.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: aj-v0.4-release
+  cancel-in-progress: false
+
+jobs:
+  build-test-and-release:
+    if: github.repository == 'Ajayraj2126/ola-s1-mods'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      AJ_RELEASE_KEYSTORE_BASE64: ${{ secrets.AJ_RELEASE_KEYSTORE_BASE64 }}
+      AJ_RELEASE_STORE_PASSWORD: ${{ secrets.AJ_RELEASE_STORE_PASSWORD }}
+      AJ_RELEASE_KEY_ALIAS: ${{ secrets.AJ_RELEASE_KEY_ALIAS }}
+      AJ_RELEASE_KEY_PASSWORD: ${{ secrets.AJ_RELEASE_KEY_PASSWORD }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.4.1'
+
+      - name: Install Android build dependencies
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Restore signing key only when all signing secrets are provided
+        id: keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${AJ_RELEASE_KEYSTORE_BASE64:-}" &&
+                -n "${AJ_RELEASE_STORE_PASSWORD:-}" &&
+                -n "${AJ_RELEASE_KEY_ALIAS:-}" &&
+                -n "${AJ_RELEASE_KEY_PASSWORD:-}" ]]; then
+            keystore="$RUNNER_TEMP/aj-private-release.jks"
+            printf '%s' "$AJ_RELEASE_KEYSTORE_BASE64" | base64 -d > "$keystore"
+            chmod 600 "$keystore"
+            echo "AJ_RELEASE_STORE_FILE=$keystore" >> "$GITHUB_ENV"
+            echo "signing_available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signing_available=false" >> "$GITHUB_OUTPUT"
+            echo "AJ signing secrets are not present; only a draft release will be created." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Unit tests, lint, build
+        working-directory: android
+        run: |
+          gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleRelease --stacktrace
+
+      - name: Validate signed APK identity and original AJ release certificate
+        id: verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "verified=false" >> "$GITHUB_OUTPUT"
+          apk="android/app/build/outputs/apk/release/app-release.apk"
+          if [[ "${{ steps.keystore.outputs.signing_available }}" != "true" ]]; then
+            echo "Signing not available. No APK will be published." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          test -f "$apk"
+          aapt="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          apksigner="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          "$aapt" dump badging "$apk" | grep -F "package: name='com.aj.s1control' versionCode='10' versionName='0.4.0-aj'"
+          "$apksigner" verify --verbose --print-certs "$apk" > "$RUNNER_TEMP/apk-cert.txt"
+          expected="77ed171c551be82ca8b74e0ad664a60caa081e943fbd8588c2b9201217f2f4ee"
+          actual=$(grep -i 'Signer #1 certificate SHA-256 digest:' "$RUNNER_TEMP/apk-cert.txt" | head -1 | awk '{print $NF}' | tr '[:upper:]' '[:lower:]')
+          if [[ "$actual" != "$expected" ]]; then
+            echo "Release key certificate does not match original AJ key. Refusing publication." >&2
+            exit 1
+          fi
+          sha256sum "$apk" > "$RUNNER_TEMP/SHA256SUMS.txt"
+          echo "verified=true" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare v0.4 release notes
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/RELEASE-NOTES.md" <<'EOF'
+          # S1 Control by AJ v0.4.0
+
+          Android companion app customized by AJ (@Ajayraj2126), based on S1Mods by Asjohn720.
+
+          ## What's new
+
+          - Modern AJ GUI with the original Shell/CLI tab retained.
+          - Read-only head-unit diagnostic snapshot (Android version, MoveOS, RAM, uptime and load).
+          - Long-press launcher shortcuts for Setup, Tools and Apps.
+          - Opt-in upstream v1.5 mod downloader in Apps: SmartBall, Android Auto, Music Mod and OpenPlay.
+          - Official v1.5 release SHA-256 and nested APK package identities checked before installation.
+
+          ## Unchanged
+
+          Existing gRPC, ADB, scooter discovery, reconnection, mod-installation
+          flows, AJ restoration and app identity `com.aj.s1control`.
+
+          ## Limitations
+
+          Official v1.5 source is not fully published. AJ's app does NOT include
+          a verified CAN/BMS decoder, vehicle lock/unlock/boot widget or original
+          v1.5 SmartBall source. The upstream mod APKs are downloaded directly
+          from their original release at the user's request, not rehosted here.
+
+          The build passes Android tests and lint, but physical scooter behavior
+          has not been independently tested. Use only on an authorized scooter
+          while parked. Original license and third-party credits remain intact.
+
+          **Upgrade:** Keep the same AJ release signing certificate as v0.3.
+          EOF
+
+      - name: Create or update GitHub draft release and publish only if correctly signed
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v0.4.0-aj"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --target "$GITHUB_SHA" --draft \
+              --title "S1 Control by AJ v0.4.0 — v1.5 Mod Integration" \
+              --notes-file "$RUNNER_TEMP/RELEASE-NOTES.md"
+          else
+            gh release edit "$tag" --notes-file "$RUNNER_TEMP/RELEASE-NOTES.md"
+          fi
+          if [[ "${{ steps.verify.outputs.verified }}" == "true" ]]; then
+            cp android/app/build/outputs/apk/release/app-release.apk \
+              "$RUNNER_TEMP/S1-Control-by-AJ-v0.4.0.apk"
+            gh release upload "$tag" \
+              "$RUNNER_TEMP/S1-Control-by-AJ-v0.4.0.apk" \
+              "$RUNNER_TEMP/SHA256SUMS.txt" --clobber
+            gh release edit "$tag" --draft=false --prerelease
+          else
+            echo "Draft release prepared; requires the original AJ release signing key before publication." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aj-v0.4-validation
+          path: |
+            android/app/build/reports/tests/testDebugUnitTest/
+            android/app/build/reports/lint-results-debug.html
+          retention-days: 14
