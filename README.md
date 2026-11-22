@@ -17,6 +17,25 @@ Compose interface.
 
 ---
 
+## 🧪 Development branch: upstream v1.5 integration
+
+The `feature/aj-v1.5-parity` branch adds a verified official v1.5
+mod-import card under **Apps**, Android launcher shortcuts and a read-only
+**Tools > Advanced diagnostics** screen.
+
+The import card downloads the official upstream v1.5 companion APK *directly
+on the user's phone*, confirms the pinned SHA-256 fingerprint, and offers
+individual installations for SmartBall, Android Auto, Music Mod and OpenPlay.
+No upstream APKs are committed to this repository. The newly packaged SmartBall
+has package ID `com.asjohn720.smartball`, different from legacy Balls.
+
+**This is not a complete v1.5 source port.** See
+[UPSTREAM-v1.5-PARITY.md](UPSTREAM-v1.5-PARITY.md) for the honest feature map,
+hardware validation requirements and current implementation status.
+The `main` branch retains the published AJ 0.3 application.
+
+---
+
 ## ⚡ Quick Start — Android App
 
 1. **Download the APK** from the [latest AJ release](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest).
