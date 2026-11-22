@@ -23,8 +23,8 @@ android {
         applicationId = "com.aj.s1control"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.3.0-aj"
+        versionCode = 10
+        versionName = "0.4.0-aj"
 
         vectorDrawables.useSupportLibrary = true
 

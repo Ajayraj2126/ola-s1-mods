@@ -1,6 +1,6 @@
 # 🛵 S1 Control by AJ — Android Companion for MoveOS
 
-[![AJ Release](https://img.shields.io/badge/AJ%20Release-0.3.0--aj-14b8a6.svg)](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
+[![AJ Release](https://img.shields.io/badge/AJ%20Release-0.4.0--aj-14b8a6.svg)](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-blue.svg)](android/README.md)
 [![Stack](https://img.shields.io/badge/Stack-Kotlin%20Compose%20%2B%20ADB-brightgreen.svg)](android/)
 [![Build](https://img.shields.io/badge/Build-Release%20Validated-blue.svg)](BUILD-VALIDATION.md)
@@ -32,7 +32,7 @@ has package ID `com.asjohn720.smartball`, different from legacy Balls.
 **This is not a complete v1.5 source port.** See
 [UPSTREAM-v1.5-PARITY.md](UPSTREAM-v1.5-PARITY.md) for the honest feature map,
 hardware validation requirements and current implementation status.
-The `main` branch retains the published AJ 0.3 application.
+The v0.4 release preserves existing AJ scooter communication and setup behavior.
 
 ---
 

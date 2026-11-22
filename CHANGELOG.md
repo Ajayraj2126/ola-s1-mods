@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0-aj] - 2026-11-22
+
+- Maintained the original AJ Android UI and existing Shell/CLI tools.
+- Added a read-only Android head-unit diagnostics page under Tools.
+- Added native Android launcher shortcuts for Setup, Tools and Apps.
+- Added opt-in downloads of the official public S1Mods v1.5 mod package
+  from Asjohn720's release, checked against a pinned SHA-256 hash.
+- Validated and individually importable upstream SmartBall, Android Auto,
+  Music Mod and OpenPlay APK identities; no mod binaries redistributed.
+- Kept existing connection, hotspot reconnect, gRPC, ADB, mod installer,
+  AJ restoration and signing compatibility unchanged.
+- Explicitly documented unavailable vehicle CAN / battery / lock / unlock /
+  boot features rather than claiming unverified parity.
+- Raised AJ app version to 0.4.0-aj (version code 10).
+
 ## [0.3.0-aj] - 2026-11-18
 
 - Added hotspot-aware automatic reconnect using a fresh verified gRPC handshake,

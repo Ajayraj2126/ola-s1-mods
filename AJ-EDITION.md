@@ -1,4 +1,4 @@
-# S1 Control by AJ — 0.3.0
+# S1 Control by AJ — 0.4.0
 
 Customized Android companion app maintained by **AJ (@Ajayraj2126)**.
 
@@ -6,7 +6,7 @@ Customized Android companion app maintained by **AJ (@Ajayraj2126)**.
 - [Latest APK and Android source ZIP](https://github.com/Ajayraj2126/ola-s1-mods/releases/latest)
 - [Release history](https://github.com/Ajayraj2126/ola-s1-mods/releases)
 
-AJ version: **0.3.0-aj**, version code **9**.
+AJ version: **0.4.0-aj**, version code **10**.
 Android application ID: `com.aj.s1control`.
 App-owned Kotlin namespace: `com.ajayraj2126.s1control`.
 
@@ -33,6 +33,20 @@ Ajayraj2126 branding. Original authorship and license information are retained i
 [NOTICE.md](NOTICE.md) and [LICENSE](LICENSE). Existing bundled-app package IDs
 remain the identities declared by those APKs so installation and launch commands
 continue to address the correct apps.
+
+## v0.4 GUI + CLI and official v1.5 mods
+
+The Android UI remains **S1 Control by AJ** with the existing Shell/CLI
+and the same discovery, ADB, gRPC and installer implementation.
+Version 0.4 adds a read-only **Tools > Advanced diagnostics** screen,
+launcher shortcuts for Setup / Tools / Apps and an opt-in official
+v1.5 mod importer. The importer fetches Asjohn720's public release,
+checks its pinned SHA-256, verifies the four nested APK identities, and
+requires separate confirmation before installing any mod.
+
+**No vehicle-control, CAN write, boot unlock, or factory-reset commands were
+added.** See [UPSTREAM-v1.5-PARITY.md](UPSTREAM-v1.5-PARITY.md) for exact
+feature coverage and remaining unsupported capabilities.
 
 ## Public-source compatibility
 
