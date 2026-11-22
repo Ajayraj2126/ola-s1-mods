@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="aj_setup"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/aj_shortcut_setup">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.aj.s1control"
+            android:targetClass="com.ajayraj2126.s1control.MainActivity">
+            <extra android:name="aj_tab" android:value="SETUP" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="aj_tools"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/aj_shortcut_tools">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.aj.s1control"
+            android:targetClass="com.ajayraj2126.s1control.MainActivity">
+            <extra android:name="aj_tab" android:value="TOOLBOX" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:shortcutId="aj_apps"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/aj_shortcut_apps">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.aj.s1control"
+            android:targetClass="com.ajayraj2126.s1control.MainActivity">
+            <extra android:name="aj_tab" android:value="CUSTOM_APK" />
+        </intent>
+    </shortcut>
+</shortcuts>
