@@ -28,6 +28,11 @@ AJ change restoration.
 - **Read-only head-unit diagnostics**: Android model/build, uptime, system load
   and RAM usage, clearly separated from vehicle telemetry.
 - **Launcher shortcuts** for Setup, Tools and Apps.
+- **Official v1.5 mod importer** in AJ App Manager: on-demand download from
+  the upstream release, exact SHA-256 verification, bounded ZIP extraction,
+  APK package-identity checks, and per-app install confirmation.
+  No mod APKs are checked into this fork. New SmartBall has a different package
+  name from legacy Balls, so the older app is never silently removed.
 - Unit tests for diagnostic output parsing.
 - Preserves AJ identity `com.aj.s1control`, existing signing configuration,
   reconnect state handling, mod installers and current source attributions.
@@ -46,11 +51,11 @@ AJ change restoration.
 | Read-only CAN battery SoC/SoH/cell values | Not implemented | Verified CAN signal profile for each generation/MoveOS |
 | BMS/MCU/VCU/charger/sensor faults | Not implemented | Verified CAN frame decoding and read-only diagnostic access |
 | Range, rails and charging watts | Not implemented | Confirmed signal source/scaling and test vectors |
-| SmartBall v1.5 / Dynamic Island | Not implemented | Source or independently implemented infotainment-side overlay |
+| SmartBall v1.5 / Dynamic Island | Official packaged SmartBall import available; AJ recreation not implemented | Check overlay permissions on device, clean-room source still unavailable |
 | SmartBall RAM, brightness, audio, True Range | Not implemented | Compatible standalone mod and generation-specific validation |
-| Android Auto 60 FPS, exit fix | Not implemented | Legal/maintainable mod code and head-unit hardware tests |
-| Music Mod dual-mode video/music | Not implemented | Licensed source and Android player functionality |
-| OpenPlay CarPlay Gen 3 fixes | Not implemented | Licensed source, protocol implementation and device tests |
+| Android Auto 60 FPS, exit fix | Official v1.5 Android Auto APK import available | Head-unit hardware tests and source reimplementation still required |
+| Music Mod dual-mode video/music | Official v1.5 Music Mod APK import available | Head-unit functionality tests and independent source still required |
+| OpenPlay CarPlay Gen 3 fixes | Official v1.5 OpenPlay APK import available | Hardware/phone testing and independent source still required |
 
 **Do not call this fork "v1.5 feature complete" until real app and scooter
 testing confirms those behaviors.** No claim that Gen 1 CAN decoder works on
@@ -70,3 +75,20 @@ GitHub Action `Validate AJ 0.3` runs unit tests, lint and unsigned optimized
 release assembly on pull requests touching `android/`. This branch is staged
 separately; do not modify the existing signed release or main branch without
 a successful CI and integration review.
+
+## Verified official v1.5 nested APK identity (GitHub Actions)
+
+Public release `S1Mods-v1.5.apk`, SHA-256:
+`3f859bd2cf3b6d0a0e94303ab19e39ea8cae42bbb0988a9fb13a4593364deb9f`.
+
+- SmartBall v1.5: `com.asjohn720.smartball` (new package vs legacy Balls).
+- Android Auto bundled APK: `com.asjohn720.androidauto`.
+- Music Mod v1.5: `com.asjohn720.musicmod`.
+- OpenPlay bundled APK: `com.asjohn720.openplay`.
+
+These package identifiers were read with Android SDK `aapt` from the downloaded
+official public v1.5 APK in an Actions metadata-only audit.
+The installer downloads to the user's phone and never copies mod APKs into
+the AJ Git repository. Installing official packaged mods is **not** the same
+as reproducing their source. Some mod permissions and platform compatibility
+need real S1 Pro Gen 2 testing.
